@@ -31,11 +31,11 @@ jobs:
         run: |
           cat <<EOF >> main.tf
 
-          module "github-repo-2" {
+          module "github-repo-${{ env.REPO_NAME }}" {
             source      = "./modules/repo"
-            name        = "${TF_NAME}"
-            description = "${TF_DESCRIPTION}"
-            visibility  = "${TF_VISIBILITY}"
+            name        = "${{ env.REPO_NAME }}"
+            description = "${{ env.DESCRIPTION }}"
+            visibility  = "${{ env.VISIBILITY }}"
           }
           EOF
 
@@ -51,9 +51,10 @@ jobs:
       - name: Create Pull Request
         run: |
             gh pr create \
-                --title "Add new repository - ${{ env.REPO_NAME }}" \
-                --body "This PR adds a new module with the specified parameters." \
-                --base main \
-                --head feature/feature/new-repository-${{ env.REPO_NAME }} \
+            -B main \
+            -H feature/new-repository-${{ env.REPO_NAME }} \
+            -t 'Add new repository: ${{ env.REPO_NAME }}' \
+            -b 'PR created automatically to create a new repository using Terraform from this issue: ${{ github.event.issue.html_url }}. Please review carefully before merging.' \
+            -l 'new-repo'
         env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
