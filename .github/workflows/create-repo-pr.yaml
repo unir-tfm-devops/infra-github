@@ -13,16 +13,47 @@ jobs:
 
       - name: Extract issue payload
         run: |
-          echo "${{ github.event.issue.body }}" > issue_body.txt
-          REPO_NAME=$(awk -F '|' '/\*\*Repository Name\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-          DESCRIPTION=$(awk -F '|' '/\*\*Description\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
-          echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
-          VISIBILITY=$(awk -F '|' '/\*\*Visibility\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
-          echo "VISIBILITY=$VISIBILITY" >> $GITHUB_ENV
+            echo "${{ github.event.issue.body }}" > issue_body.txt
+            REPO_NAME=$(awk -F '|' '/\*\*Repository Name\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
+            echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+            DESCRIPTION=$(awk -F '|' '/\*\*Description\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
+            echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
+            VISIBILITY=$(awk -F '|' '/\*\*Visibility\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
+            echo "VISIBILITY=$VISIBILITY" >> $GITHUB_ENV
 
       - name: Print Extracted Values
         run: |
           echo "Repository Name: $REPO_NAME"
           echo "Description: $DESCRIPTION"
           echo "Visibility: $VISIBILITY"
+    
+      - name: Modify main.tf
+        run: |
+          cat <<EOF >> main.tf
+
+          module "github-repo-2" {
+            source      = "./modules/repo"
+            name        = "${TF_NAME}"
+            description = "${TF_DESCRIPTION}"
+            visibility  = "${TF_VISIBILITY}"
+          }
+          EOF
+
+      - name: Commit changes
+        run: |
+            git config --global user.email "github-actions@github.com"
+            git config --global user.name "github-actions"
+            git checkout -b feature/new-repository-${{ env.REPO_NAME }}
+            git add main.tf
+            git commit -m "Modify main.tf"
+            git push origin feature/new-repository-${{ env.REPO_NAME }}
+  
+      - name: Create Pull Request
+        run: |
+            gh pr create \
+                --title "Add new repository - ${{ env.REPO_NAME }}" \
+                --body "This PR adds a new module with the specified parameters." \
+                --base main \
+                --head feature/feature/new-repository-${{ env.REPO_NAME }} \
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
