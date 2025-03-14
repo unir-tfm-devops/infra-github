@@ -7,7 +7,7 @@ on:
 
 jobs:
   terraform:
-    name: "Terraform Applu"
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout repository"
