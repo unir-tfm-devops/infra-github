@@ -25,4 +25,4 @@ jobs:
       - name: "Terraform Plan"
         run: terraform plan
         env:
-          TF_VAR_github_token: ${{ secrets.GH_TOKEN }}
+          TF_VAR_gh_token: ${{ secrets.GH_TOKEN }}
