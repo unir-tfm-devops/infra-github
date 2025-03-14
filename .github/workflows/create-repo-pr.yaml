@@ -11,22 +11,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Extract issue body
+      - name: Extract issue payload
         run: |
           echo "${{ github.event.issue.body }}" > issue_body.txt
-
-      - name: Parse Repository Name
-        run: |
           REPO_NAME=$(awk -F '|' '/\*\*Repository Name\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-
-      - name: Parse Description
-        run: |
           DESCRIPTION=$(awk -F '|' '/\*\*Description\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
           echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
-
-      - name: Parse Visibility
-        run: |
           VISIBILITY=$(awk -F '|' '/\*\*Visibility\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
           echo "VISIBILITY=$VISIBILITY" >> $GITHUB_ENV
 
