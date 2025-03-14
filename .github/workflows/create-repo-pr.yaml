@@ -13,7 +13,14 @@ jobs:
 
       - name: Extract Issue Data
         id: extract
+        shell: bash
         run: |
-          echo "REPO_NAME=$(jq -r '.issue.body | capture("Repository Name: (?<name>.*)") | .name' <<< '${{ github.event.issue.body }}')" >> $GITHUB_ENV
-          echo "REPO_DESCRIPTION=$(jq -r '.issue.body | capture("Repository Description: (?<desc>.*)") | .desc' <<< '${{ github.event.issue.body }}')" >> $GITHUB_ENV
-          echo "REPO_VISIBILITY=$(jq -r '.issue.body | capture("Repository Visibility: (?<vis>.*)") | .vis' <<< '${{ github.event.issue.body }}')" >> $GITHUB_ENV
+          echo "REPO_NAME=$(jq -r '. | capture("Repository Name:\\s*(?<name>[^\n]+)") | .name' <<< "${{ github.event.issue.body }}")" >> $GITHUB_ENV
+          echo "REPO_DESCRIPTION=$(jq -r '. | capture("Repository Description:\\s*(?<desc>[^\n]+)") | .desc' <<< "${{ github.event.issue.body }}")" >> $GITHUB_ENV
+          echo "REPO_VISIBILITY=$(jq -r '. | capture("Repository Visibility:\\s*(?<vis>[^\n]+)") | .vis' <<< "${{ github.event.issue.body }}")" >> $GITHUB_ENV
+
+      - name: Print Extracted Data
+        run: |
+          echo "Repository Name: ${{ env.REPO_NAME }}"
+          echo "Repository Description: ${{ env.REPO_DESCRIPTION }}"
+          echo "Repository Visibility: ${{ env.REPO_VISIBILITY }}"
