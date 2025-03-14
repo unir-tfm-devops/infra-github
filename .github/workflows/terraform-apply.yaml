@@ -7,7 +7,7 @@ on:
 
 jobs:
   terraform:
-    name: "Terraform Applu"
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout repository"
@@ -24,9 +24,9 @@ jobs:
       - name: "Terraform Plan"
         run: terraform plan
         env:
-          TF_VAR_gh_token: ${{ secrets.GH_TOKEN }}
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN }}
 
       - name: "Terraform Apply"
         run: terraform apply -auto-approve
         env:
-          TF_VAR_gh_token: ${{ secrets.GH_TOKEN }}
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN }}
