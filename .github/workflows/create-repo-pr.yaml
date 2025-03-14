@@ -1,7 +1,7 @@
 name: "Create Repo PR"
 on:
   issues:
-    types: [opened]
+    types: [opened, unlabeled, labeled]
 
 jobs:
   create_pr:
@@ -17,32 +17,3 @@ jobs:
           echo "REPO_NAME=$(jq -r '.issue.body | capture("Repository Name: (?<name>.*)") | .name' <<< '${{ github.event.issue.body }}')" >> $GITHUB_ENV
           echo "REPO_DESCRIPTION=$(jq -r '.issue.body | capture("Repository Description: (?<desc>.*)") | .desc' <<< '${{ github.event.issue.body }}')" >> $GITHUB_ENV
           echo "REPO_VISIBILITY=$(jq -r '.issue.body | capture("Repository Visibility: (?<vis>.*)") | .vis' <<< '${{ github.event.issue.body }}')" >> $GITHUB_ENV
-
-      - name: Modify Terraform File
-        run: |
-          cat > main.tf <<EOL
-          module "github-repo" {
-            source = "./modules/repo"
-
-            name        = "${REPO_NAME}"
-            description = "${REPO_DESCRIPTION}"
-            visibility  = "${REPO_VISIBILITY}"
-          }
-          EOL
-
-      - name: Create Branch
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git checkout -b feature/new-repo-${REPO_NAME}
-          git add main.tf
-          git commit -m "Add new GitHub repository: ${REPO_NAME}"
-          git push origin feature/new-repo-${REPO_NAME}
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          title: "Create new GitHub repository: ${{ env.REPO_NAME }}"
-          body: "This PR adds a new repository to Terraform."
-          branch: "feature/new-repo-${{ env.REPO_NAME }}"
-          labels: "terraform"
