@@ -57,4 +57,4 @@ jobs:
             -b 'PR created automatically to create a new repository using Terraform from this issue: ${{ github.event.issue.html_url }}. Please review carefully before merging.' \
             -l 'new-repo'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
