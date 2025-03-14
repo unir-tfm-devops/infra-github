@@ -4,4 +4,6 @@ module "github_repo" {
   name        = "created-terraform-repo"
   description = "This is my repo created automatically by Terraform"
   visibility  = "private"
+
+  github_token = var.gh_token
 }

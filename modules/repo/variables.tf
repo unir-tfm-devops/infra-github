@@ -13,3 +13,9 @@ variable "visibility" {
   description = "The visibility of the repository"
   default     = "public"
 }
+
+variable "github_token" {
+  description = "GitHub token"
+  type        = string
+  sensitive   = true
+}
