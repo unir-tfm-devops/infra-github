@@ -1,6 +1,6 @@
 ---
 name: "New Repository Request"
-description: "Request the creation of a new GitHub repository."
+about: "Request the creation of a new GitHub repository."
 title: "[New Repository] <repository-name>"
 labels: ["new-repo"]
 ---
