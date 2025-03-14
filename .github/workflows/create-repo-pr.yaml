@@ -11,16 +11,27 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Extract Issue Data
-        id: extract
-        shell: bash
+      - name: Extract issue body
         run: |
-          echo "REPO_NAME=$(jq -r '. | capture("Repository Name:\\s*(?<name>[^\n]+)") | .name' <<< "${{ github.event.issue.body }}")" >> $GITHUB_ENV
-          echo "REPO_DESCRIPTION=$(jq -r '. | capture("Repository Description:\\s*(?<desc>[^\n]+)") | .desc' <<< "${{ github.event.issue.body }}")" >> $GITHUB_ENV
-          echo "REPO_VISIBILITY=$(jq -r '. | capture("Repository Visibility:\\s*(?<vis>[^\n]+)") | .vis' <<< "${{ github.event.issue.body }}")" >> $GITHUB_ENV
+          echo "${{ github.event.issue.body }}" > issue_body.txt
 
-      - name: Print Extracted Data
+      - name: Parse Repository Name
         run: |
-          echo "Repository Name: ${{ env.REPO_NAME }}"
-          echo "Repository Description: ${{ env.REPO_DESCRIPTION }}"
-          echo "Repository Visibility: ${{ env.REPO_VISIBILITY }}"
+          REPO_NAME=$(awk -F '|' '/\*\*Repository Name\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+
+      - name: Parse Description
+        run: |
+          DESCRIPTION=$(awk -F '|' '/\*\*Description\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
+          echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
+
+      - name: Parse Visibility
+        run: |
+          VISIBILITY=$(awk -F '|' '/\*\*Visibility\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
+          echo "VISIBILITY=$VISIBILITY" >> $GITHUB_ENV
+
+      - name: Print Extracted Values
+        run: |
+          echo "Repository Name: $REPO_NAME"
+          echo "Description: $DESCRIPTION"
+          echo "Visibility: $VISIBILITY"
