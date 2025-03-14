@@ -7,7 +7,7 @@ body:
   - type: input
     id: repo_name
     attributes:
-      label: "Repository Name"
+      label: "Repository Name:"
       description: "Enter the name of the new repository"
       placeholder: "my-new-repo"
     validations:
@@ -16,7 +16,7 @@ body:
   - type: textarea
     id: repo_description
     attributes:
-      label: "Repository Description"
+      label: "Repository Description:"
       description: "Provide a brief description of the repository"
       placeholder: "This repository is used for..."
     validations:
@@ -25,7 +25,7 @@ body:
   - type: dropdown
     id: repo_visibility
     attributes:
-      label: "Repository Visibility"
+      label: "Repository Visibility:"
       description: "Choose the visibility of the repository"
       options:
         - "public"
