@@ -46,6 +46,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: "unir-tfm-terraform-github"
+
       - name: Modify main.tf
         env:
           NAME: ${{ needs.extract_info.outputs.name }}
@@ -66,8 +74,9 @@ jobs:
         env:
           NAME: ${{ needs.extract_info.outputs.name }}
         run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "github-actions"
+          git config --global user.email "unir-tfm-alvarorg14[bot]@users.noreply.github.com"
+          git config --global user.name "unir-tfm-alvarorg14[bot]"
+          git remote set-url origin https://x-access-token:${{ steps.get_token.outputs.token }}@github.com/${{ github.repository }}
           git checkout -b feature/new-repository-${{ env.NAME }}
           git add main.tf
           git commit -m "Modify main.tf"

@@ -27,7 +27,7 @@ body:
       label: "Repository Visibility"
       description: "Select the visibility of the repository."
       options:
-        - Public
-        - Private
+        - public
+        - private
     validations:
       required: true
