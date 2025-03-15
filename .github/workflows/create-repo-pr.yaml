@@ -43,6 +43,9 @@ jobs:
     outputs:
       name: ${{ needs.extract_info.outputs.name }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Modify main.tf
         env:
           NAME: ${{ needs.extract_info.outputs.name }}
@@ -75,6 +78,9 @@ jobs:
     needs: commit_changes
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Create Pull Request
         env:
           NAME: ${{ needs.commit_changes.outputs.name }}
