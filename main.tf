@@ -6,3 +6,10 @@ module "github-repo" {
   visibility  = "private"
 
 }
+
+module "products-search-2" {
+  source      = "./modules/repo"
+  name        = "products-search-2"
+  description = "Description for repository"
+  visibility  = "public"
+}
