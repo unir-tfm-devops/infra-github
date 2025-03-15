@@ -14,9 +14,9 @@ jobs:
       - name: Extract issue payload
         run: |
           ISSUE_BODY="${{ github.event.issue.body }}"
-          REPO_NAME=$(echo "$ISSUE_BODY" | sed -n 's/### Repository Name//; s/^\s*//p' | sed -n '1p')
-          REPO_DESC=$(echo "$ISSUE_BODY" | sed -n 's/### Repository Description//; s/^\s*//p' | sed -n '1p')
-          REPO_VISIBILITY=$(echo "$ISSUE_BODY" | sed -n 's/### Repository Visibility//; s/^\s*//p' | sed -n '1p')
+          REPO_NAME=$(echo "$ISSUE_BODY" | awk '/### Repository Name/{getline; print}')
+          REPO_DESC=$(echo "$ISSUE_BODY" | awk '/### Repository Description/{getline; print}')
+          REPO_VISIBILITY=$(echo "$ISSUE_BODY" | awk '/### Repository Visibility/{getline; print}')
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
           echo "DESCRIPTION=$REPO_DESC" >> $GITHUB_ENV
           echo "VISIBILITY=$REPO_VISIBILITY" >> $GITHUB_ENV
