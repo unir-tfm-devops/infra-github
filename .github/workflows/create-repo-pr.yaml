@@ -124,7 +124,9 @@ jobs:
             ### Checklist
             - [ ] Verify repository name and description
             - [ ] Confirm Terraform syntax correctness
-            - [ ] Merge once validated" \
+            - [ ] Merge once validated"
+
+            Closes #${{ env.ISSUE_NUMBER }}" \ 
             -l "new-repo")
 
           echo "PR_URL=$PR_URL" >> $GITHUB_ENV
