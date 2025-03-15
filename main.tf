@@ -8,3 +8,10 @@ module "github-repo" {
 }
 
 
+
+module "github-repo-products-search" {
+  source      = "./modules/repo"
+  name        = "products-search"
+  description = "This repo is used for storing the code for a service used for retrieving products for customers."
+  visibility  = "Public"
+}
