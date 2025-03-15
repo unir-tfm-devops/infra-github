@@ -13,20 +13,20 @@ jobs:
 
       - name: Extract issue payload
         run: |
-            echo "${{ github.event.issue.body }}" > issue_body.txt
-            REPO_NAME=$(awk -F '|' '/\*\*Repository Name\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
-            echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-            DESCRIPTION=$(awk -F '|' '/\*\*Description\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
-            echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
-            VISIBILITY=$(awk -F '|' '/\*\*Visibility\*\*/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' issue_body.txt)
-            echo "VISIBILITY=$VISIBILITY" >> $GITHUB_ENV
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          REPO_NAME=$(echo "$ISSUE_BODY" | sed -n 's/### Repository Name//; s/^\s*//p' | sed -n '1p')
+          REPO_DESC=$(echo "$ISSUE_BODY" | sed -n 's/### Repository Description//; s/^\s*//p' | sed -n '1p')
+          REPO_VISIBILITY=$(echo "$ISSUE_BODY" | sed -n 's/### Repository Visibility//; s/^\s*//p' | sed -n '1p')
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+          echo "DESCRIPTION=$REPO_DESC" >> $GITHUB_ENV
+          echo "VISIBILITY=$REPO_VISIBILITY" >> $GITHUB_ENV
 
       - name: Print Extracted Values
         run: |
           echo "Repository Name: $REPO_NAME"
           echo "Description: $DESCRIPTION"
           echo "Visibility: $VISIBILITY"
-    
+
       - name: Modify main.tf
         run: |
           cat <<EOF >> main.tf
@@ -41,20 +41,20 @@ jobs:
 
       - name: Commit changes
         run: |
-            git config --global user.email "github-actions@github.com"
-            git config --global user.name "github-actions"
-            git checkout -b feature/new-repository-${{ env.REPO_NAME }}
-            git add main.tf
-            git commit -m "Modify main.tf"
-            git push origin feature/new-repository-${{ env.REPO_NAME }}
-  
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+          git checkout -b feature/new-repository-${{ env.REPO_NAME }}
+          git add main.tf
+          git commit -m "Modify main.tf"
+          git push origin feature/new-repository-${{ env.REPO_NAME }}
+
       - name: Create Pull Request
         run: |
-            gh pr create \
-            -B main \
-            -H feature/new-repository-${{ env.REPO_NAME }} \
-            -t 'Add new repository: ${{ env.REPO_NAME }}' \
-            -b 'PR created automatically to create a new repository using Terraform from this issue: ${{ github.event.issue.html_url }}. Please review carefully before merging.' \
-            -l 'new-repo'
+          gh pr create \
+          -B main \
+          -H feature/new-repository-${{ env.REPO_NAME }} \
+          -t 'Add new repository: ${{ env.REPO_NAME }}' \
+          -b 'PR created automatically to create a new repository using Terraform from this issue: ${{ github.event.issue.html_url }}. Please review carefully before merging.' \
+          -l 'new-repo'
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
