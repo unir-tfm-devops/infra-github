@@ -37,7 +37,7 @@ jobs:
           echo "Visibility: ${{ steps.extract_info.outputs.VISIBILITY }}"
 
   get_token:
-    name: Get GitHub Token
+    name: Get GitHub App Token
     runs-on: ubuntu-latest
     outputs:
       GH_TOKEN: ${{ steps.get_token.outputs.token }}
@@ -48,7 +48,7 @@ jobs:
         with:
           app_id: ${{ vars.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
-          repositories: ${{ github.repository }}
+          repositories: "unir-tfm-terraform-github"
 
   commit_changes:
     name: Commit Changes
