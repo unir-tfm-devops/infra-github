@@ -8,3 +8,10 @@ module "github-repo" {
 }
 
 
+
+module "github-repo-" {
+  source      = "./modules/repo"
+  name        = ""
+  description = ""
+  visibility  = ""
+}
