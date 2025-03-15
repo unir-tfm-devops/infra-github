@@ -8,6 +8,10 @@ jobs:
     name: Extract Issue Information
     if: contains(github.event.issue.labels.*.name, 'new-repo')
     runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.extract_info.outputs.NAME }}
+      description: ${{ steps.extract_info.outputs.DESCRIPTION }}
+      visibility: ${{ steps.extract_info.outputs.VISIBILITY }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -20,23 +24,30 @@ jobs:
           python extract-repo-info.py issue_body.md
 
       - name: Extract Repo Information
+        id: extract_info
         run: |
-          echo "NAME=$(grep 'Name:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
-          echo "DESCRIPTION=$(grep 'Description:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
-          echo "VISIBILITY=$(grep 'Visibility:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
+          echo "NAME=$(grep 'Name:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
+          echo "DESCRIPTION=$(grep 'Description:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
+          echo "VISIBILITY=$(grep 'Visibility:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
 
       - name: Print Extracted Information
         run: |
-          echo "Name: ${{ env.NAME }}"
-          echo "Description: ${{ env.DESCRIPTION }}"
-          echo "Visibility: ${{ env.VISIBILITY }}"
+          echo "Name: ${{ steps.extract_info.outputs.NAME }}"
+          echo "Description: ${{ steps.extract_info.outputs.DESCRIPTION }}"
+          echo "Visibility: ${{ steps.extract_info.outputs.VISIBILITY }}"
 
   commit_changes:
     name: Commit Changes
     needs: extract_info
     runs-on: ubuntu-latest
+    outputs:
+      name: ${{ needs.extract_info.outputs.name }}
     steps:
       - name: Modify main.tf
+        env:
+          NAME: ${{ needs.extract_info.outputs.name }}
+          DESCRIPTION: ${{ needs.extract_info.outputs.description }}
+          VISIBILITY: ${{ needs.extract_info.outputs.visibility }}
         run: |
           cat <<EOF >> main.tf
 
@@ -49,6 +60,8 @@ jobs:
           EOF
 
       - name: Commit changes
+        env:
+          NAME: ${{ needs.extract_info.outputs.name }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
@@ -63,6 +76,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create Pull Request
+        env:
+          NAME: ${{ needs.commit_changes.outputs.name }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           gh pr create \
           -B main \
@@ -70,5 +86,3 @@ jobs:
           -t 'Add new repository: ${{ env.NAME }}' \
           -b 'PR created automatically to create a new repository using Terraform from this issue: ${{ github.event.issue.html_url }}. Please review carefully before merging.' \
           -l 'new-repo'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
