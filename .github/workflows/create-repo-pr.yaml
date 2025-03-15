@@ -92,7 +92,7 @@ jobs:
       - name: Create Pull Request
         env:
           NAME: ${{ needs.commit_changes.outputs.name }}
-          GITHUB_TOKEN: ${{ needs.commit_changes.outputs.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
         run: |
           gh pr create \
           -B main \
