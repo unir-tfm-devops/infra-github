@@ -42,6 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       name: ${{ needs.extract_info.outputs.name }}
+      description: ${{ needs.extract_info.outputs.description }}
+      visibility: ${{ needs.extract_info.outputs.visibility }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -99,13 +101,39 @@ jobs:
           repositories: "unir-tfm-terraform-github"
 
       - name: Create Pull Request
+        id: create_pr
         env:
           NAME: ${{ needs.commit_changes.outputs.name }}
+          DESCRIPTION: ${{ needs.commit_changes.outputs.description }}
+          VISIBILITY: ${{ needs.commit_changes.outputs.visibility }}
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh pr create \
-          -B main \
-          -H feature/new-repository-${{ env.NAME }} \
-          -t 'Add new repository: ${{ env.NAME }}' \
-          -b 'PR created automatically to create a new repository using Terraform from this issue: ${{ github.event.issue.html_url }}. Please review carefully before merging.' \
-          -l 'new-repo'
+          PR_URL=$(gh pr create \
+            -B main \
+            -H feature/new-repository-${{ env.NAME }} \
+            -t "Add new repository: ${{ env.NAME }}" \
+            -b "### Summary
+            This PR creates a new repository as requested in [Issue #${{ env.ISSUE_NUMBER }}](${{ env.ISSUE_URL }}).
+
+            **Repository Name:** `${{ env.NAME }}`
+            **Description:** `${{ env.DESCRIPTION }}`
+            **Visibility:** `${{ env.VISIBILITY }}`
+
+            ### Checklist
+            - [ ] Verify repository name and description
+            - [ ] Confirm Terraform syntax correctness
+            - [ ] Merge once validated" \
+            -l "new-repo")
+
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+
+      - name: Comment on Issue
+        env:
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PR_URL: ${{ env.PR_URL }}
+        run: |
+          gh issue comment ${{ env.ISSUE_NUMBER }} --body "A pull request has been created to address this issue: ${{ env.PR_URL }}. Please review and provide feedback."
