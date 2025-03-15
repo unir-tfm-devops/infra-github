@@ -36,27 +36,12 @@ jobs:
           echo "Description: ${{ steps.extract_info.outputs.DESCRIPTION }}"
           echo "Visibility: ${{ steps.extract_info.outputs.VISIBILITY }}"
 
-  get_token:
-    name: Get GitHub App Token
-    runs-on: ubuntu-latest
-    outputs:
-      GH_TOKEN: ${{ steps.get_token.outputs.token }}
-    steps:
-      - name: Get Token From GitHub APP
-        id: get_token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          repositories: "unir-tfm-terraform-github"
-
   commit_changes:
     name: Commit Changes
-    needs: [extract_info, get_token]
+    needs: [extract_info]
     runs-on: ubuntu-latest
     outputs:
       name: ${{ needs.extract_info.outputs.name }}
-      GH_TOKEN: ${{ needs.get_token.outputs.GH_TOKEN }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -95,6 +80,14 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: "unir-tfm-terraform-github"
 
       - name: Create Pull Request
         env:
