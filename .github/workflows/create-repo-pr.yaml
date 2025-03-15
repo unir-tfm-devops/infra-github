@@ -64,7 +64,7 @@ jobs:
         run: |
           cat <<EOF >> main.tf
 
-          module "github-repo-${{ env.NAME }}" {
+          module "${{ env.NAME }}" {
             source      = "./modules/repo"
             name        = "${{ env.NAME }}"
             description = "${{ env.DESCRIPTION }}"
