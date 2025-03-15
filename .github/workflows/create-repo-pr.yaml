@@ -126,7 +126,7 @@ jobs:
             - [ ] Confirm Terraform syntax correctness
             - [ ] Merge once validated
 
-            Closes #${{ env.ISSUE_NUMBER }}" \ 
+            Closes #${{ env.ISSUE_NUMBER }}" \
             -l "new-repo")
 
           echo "PR_URL=$PR_URL" >> $GITHUB_ENV
