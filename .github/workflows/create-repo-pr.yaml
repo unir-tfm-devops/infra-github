@@ -4,36 +4,39 @@ on:
     types: [opened, unlabeled, labeled]
 
 jobs:
-  create_pr:
+  extract_info:
+    name: Extract Issue Information
     if: contains(github.event.issue.labels.*.name, 'new-repo')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Extract issue payload
+      - name: Parse Issue Body
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          ISSUE_BODY="${{ github.event.issue.body }}"
-          REPO_NAME=$(echo "$ISSUE_BODY" | awk '/### Repository Name/{getline; print}')
-          REPO_DESC=$(echo "$ISSUE_BODY" | awk '/### Repository Description/{getline; print}')
-          REPO_VISIBILITY=$(echo "$ISSUE_BODY" | awk '/### Repository Visibility/{getline; print}')
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-          echo "DESCRIPTION=$REPO_DESC" >> $GITHUB_ENV
-          echo "VISIBILITY=$REPO_VISIBILITY" >> $GITHUB_ENV
+          echo "$ISSUE_BODY" > issue_body.md
+          python extract-repo-info.py issue_body.md
 
-      - name: Print Extracted Values
+      - name: Extract Repo Information
         run: |
-          echo "Repository Name: $REPO_NAME"
-          echo "Description: $DESCRIPTION"
-          echo "Visibility: $VISIBILITY"
+          echo "NAME=$(grep 'Name:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
+          echo "DESCRIPTION=$(grep 'Description:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
+          echo "VISIBILITY=$(grep 'Visibility:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
 
+  commit_changes:
+    name: Commit Changes
+    needs: extract_info
+    runs-on: ubuntu-latest
+    steps:
       - name: Modify main.tf
         run: |
           cat <<EOF >> main.tf
 
-          module "github-repo-${{ env.REPO_NAME }}" {
+          module "github-repo-${{ env.NAME }}" {
             source      = "./modules/repo"
-            name        = "${{ env.REPO_NAME }}"
+            name        = "${{ env.NAME }}"
             description = "${{ env.DESCRIPTION }}"
             visibility  = "${{ env.VISIBILITY }}"
           }
@@ -43,17 +46,22 @@ jobs:
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
-          git checkout -b feature/new-repository-${{ env.REPO_NAME }}
+          git checkout -b feature/new-repository-${{ env.NAME }}
           git add main.tf
           git commit -m "Modify main.tf"
-          git push origin feature/new-repository-${{ env.REPO_NAME }}
+          git push origin feature/new-repository-${{ env.NAME }}
 
+  create_pr:
+    name: Create Pull Request
+    needs: commit_changes
+    runs-on: ubuntu-latest
+    steps:
       - name: Create Pull Request
         run: |
           gh pr create \
           -B main \
-          -H feature/new-repository-${{ env.REPO_NAME }} \
-          -t 'Add new repository: ${{ env.REPO_NAME }}' \
+          -H feature/new-repository-${{ env.NAME }} \
+          -t 'Add new repository: ${{ env.NAME }}' \
           -b 'PR created automatically to create a new repository using Terraform from this issue: ${{ github.event.issue.html_url }}. Please review carefully before merging.' \
           -l 'new-repo'
         env:
