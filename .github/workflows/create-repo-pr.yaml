@@ -40,7 +40,7 @@ jobs:
     name: Get GitHub Token
     runs-on: ubuntu-latest
     outputs:
-      GH_TOKEN: ${{ steps.get_token.outputs.GH_TOKEN }}
+      GH_TOKEN: ${{ steps.get_token.outputs.token }}
     steps:
       - name: Get Token From GitHub APP
         id: get_token
