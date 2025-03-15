@@ -8,3 +8,10 @@ module "github-repo" {
 }
 
 
+
+module "github-repo-products-search" {
+  source      = "./modules/repo"
+  name        = "products-search"
+  description = "Description for this repository that will store Java and C# code."
+  visibility  = "public"
+}
