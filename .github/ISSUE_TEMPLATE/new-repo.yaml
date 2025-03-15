@@ -1,0 +1,33 @@
+name: "New Repository Request"
+description: "Request the creation of a new GitHub repository."
+title: "[New Repository] <repository-name>"
+labels: ["new-repo"]
+body:
+  - type: input
+    id: repository-name
+    attributes:
+      label: "Repository Name"
+      description: "Enter the name of the new repository."
+      placeholder: "example-repo"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Repository Description"
+      description: "Provide a brief description of the repository."
+      placeholder: "This repository will be used for..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: visibility
+    attributes:
+      label: "Repository Visibility"
+      description: "Select the visibility of the repository."
+      options:
+        - Public
+        - Private
+    validations:
+      required: true
