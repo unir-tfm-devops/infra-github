@@ -13,14 +13,6 @@ jobs:
       - name: "Checkout repository"
         uses: actions/checkout@v4
 
-      - name: Get Token From GitHub APP
-        id: get_token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
       - name: "Setup Terraform"
         uses: hashicorp/setup-terraform@v3
         with:
@@ -32,9 +24,9 @@ jobs:
       - name: "Terraform Plan"
         run: terraform plan
         env:
-          TF_VAR_github_token: ${{ steps.get_token.outputs.token }}
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN }}
 
       - name: "Terraform Apply"
         run: terraform apply -auto-approve
         env:
-          TF_VAR_github_token: ${{ steps.get_token.outputs.token }}
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN }}
