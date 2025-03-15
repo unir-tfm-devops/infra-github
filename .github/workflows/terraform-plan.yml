@@ -35,6 +35,7 @@ jobs:
           TF_VAR_github_token: ${{ steps.get_token.outputs.token }}
 
       - name: Post PR comment
+        if: always()
         uses: borchero/terraform-plan-comment@v2
         with:
           token: ${{ steps.get_token.outputs.token }}
