@@ -36,12 +36,27 @@ jobs:
           echo "Description: ${{ steps.extract_info.outputs.DESCRIPTION }}"
           echo "Visibility: ${{ steps.extract_info.outputs.VISIBILITY }}"
 
+  get_token:
+    name: Get GitHub Token
+    runs-on: ubuntu-latest
+    outputs:
+      GH_TOKEN: ${{ steps.get_token.outputs.GH_TOKEN }}
+    steps:
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app_id: ${{ vars.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: ${{ github.repository }}
+
   commit_changes:
     name: Commit Changes
-    needs: extract_info
+    needs: [extract_info, get_token]
     runs-on: ubuntu-latest
     outputs:
       name: ${{ needs.extract_info.outputs.name }}
+      GH_TOKEN: ${{ needs.get_token.outputs.GH_TOKEN }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -84,7 +99,7 @@ jobs:
       - name: Create Pull Request
         env:
           NAME: ${{ needs.commit_changes.outputs.name }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ needs.commit_changes.outputs.GH_TOKEN }}
         run: |
           gh pr create \
           -B main \
