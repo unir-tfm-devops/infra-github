@@ -25,6 +25,12 @@ jobs:
           echo "DESCRIPTION=$(grep 'Description:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
           echo "VISIBILITY=$(grep 'Visibility:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_ENV
 
+      - name: Print Extracted Information
+        run: |
+          echo "Name: ${{ env.NAME }}"
+          echo "Description: ${{ env.DESCRIPTION }}"
+          echo "Visibility: ${{ env.VISIBILITY }}"
+
   commit_changes:
     name: Commit Changes
     needs: extract_info
