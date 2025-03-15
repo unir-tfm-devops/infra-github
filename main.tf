@@ -13,3 +13,10 @@ module "products-search-2" {
   description = "Description"
   visibility  = "public"
 }
+
+module "personal-repo-alvaro" {
+  source      = "./modules/repo"
+  name        = "personal-repo-alvaro"
+  description = "Description for the personal repo"
+  visibility  = "private"
+}
