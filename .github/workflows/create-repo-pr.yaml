@@ -124,7 +124,7 @@ jobs:
             ### Checklist
             - [ ] Verify repository name and description
             - [ ] Confirm Terraform syntax correctness
-            - [ ] Merge once validated"
+            - [ ] Merge once validated
 
             Closes #${{ env.ISSUE_NUMBER }}" \ 
             -l "new-repo")
