@@ -1,7 +1,7 @@
 name: "Create Repo PR"
 on:
   issues:
-    types: [opened, unlabeled, labeled]
+    types: [opened]
 
 jobs:
   extract_info:
