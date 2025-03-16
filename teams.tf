@@ -8,5 +8,5 @@ module "alvarorg14" {
   source = "./modules/user"
   username = "alvarorg14"
   github_membership = "admin"
-  teams = { "admins" = "admin" }
+  teams = { "admins" = "maintainer" }
 }
