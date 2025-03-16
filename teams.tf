@@ -1,11 +1,11 @@
 module "admins" {
-  source      = "./modules/teams"
+  source      = "./modules/team"
   name        = "admins"
   description = "Admin teams"
 }
 
 module "alvarorg14" {
-  source = "./modules/users"
+  source = "./modules/user"
   username = "alvarorg14"
   github_membership = "admin"
   teams = { "admins" = "admin" }
