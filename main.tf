@@ -6,3 +6,10 @@ module "products-search" {
   visibility  = "private"
 
 }
+
+module "spring-boot-template" {
+  source      = "./modules/repo"
+  name        = "spring-boot-template"
+  description = "Repository for the spring boot template"
+  visibility  = "public"
+}
