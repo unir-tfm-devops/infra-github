@@ -55,9 +55,9 @@ resource "github_repository_ruleset" "this" {
   dynamic "bypass_actors" {
     for_each = lookup(each.value, "bypass_actors", [])
     content {
-      actor_id    = try(bypass_actors.value.actor_id, null)
-      actor_type  = try(bypass_actors.value.actor_type, null)
-      bypass_mode = try(bypass_actors.value.bypass_mode, null)
+      actor_type  = bypass_actors.value.actor_type
+      actor_id    = bypass_actors.value.actor_type == "OrganizationAdmin" ? "0" : bypass_actors.value.actor_id
+      bypass_mode = bypass_actors.value.bypass_mode
     }
   }
 
