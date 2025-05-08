@@ -140,6 +140,14 @@ variable "template_repository" {
   default     = null
 }
 
+variable "teams" {
+  description = "Team permissions for the repository"
+  type = map(any)
+  default = {
+    "admins" = "admin"
+  }
+}
+
 variable "repository_rulesets" {
   description = "List of repository rulesets"
   type        = map(any)

@@ -31,6 +31,13 @@ resource "github_repository" "this" {
   }
 }
 
+resource "github_team_repository" "some_team_repo" {
+  for_each   = var.teams
+  team_id    = each.key
+  repository = github_repository.this.name
+  permission = each.value
+}
+
 resource "github_repository_ruleset" "this" {
   for_each    = var.archived ? {} : var.repository_rulesets
   name        = each.key
