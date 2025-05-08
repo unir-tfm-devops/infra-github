@@ -94,3 +94,16 @@ resource "github_repository_ruleset" "this" {
     }
   }
 }
+
+resource "github_issue_labels" "this" {
+  repository  = github_repository.this.name
+  
+  dynamic "label" {
+    for_each = var.labels
+    content {
+      name        = label.key
+      description = label.value.description
+      color       = label.value.color
+    }
+  }
+}

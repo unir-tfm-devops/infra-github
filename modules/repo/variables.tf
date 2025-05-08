@@ -179,3 +179,18 @@ variable "repository_rulesets" {
     }
   }
 }
+
+variable "labels" {
+  description = "Labels to create in the repository"
+  type        = map(any)
+  default     = {
+    "bug" = {
+      color = "d73a4a"
+      description = "Something isn't working"
+    }
+    "enhancement" = {
+      color = "a2eeef"
+      description = "New feature or request"
+    }
+  }
+}
