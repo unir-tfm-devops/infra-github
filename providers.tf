@@ -1,6 +1,6 @@
 terraform {
   cloud {
-    organization = "unir-tfm"
+    organization = "alvarorg14-org"
 
     workspaces {
       name = "unir-tfm-terraform-github"
