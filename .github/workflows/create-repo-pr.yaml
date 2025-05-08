@@ -56,13 +56,13 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           repositories: "terraform-github"
 
-      - name: Modify main.tf
+      - name: Modify repos.tf
         env:
           NAME: ${{ needs.extract_info.outputs.name }}
           DESCRIPTION: ${{ needs.extract_info.outputs.description }}
           VISIBILITY: ${{ needs.extract_info.outputs.visibility }}
         run: |
-          cat <<EOF >> main.tf
+          cat <<EOF >> repos.tf
 
           module "${{ env.NAME }}" {
             source      = "./modules/repo"
