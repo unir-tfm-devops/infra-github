@@ -80,8 +80,8 @@ jobs:
           git config --global user.name "unir-tfm-devops[bot]"
           git remote set-url origin https://x-access-token:${{ steps.get_token.outputs.token }}@github.com/${{ github.repository }}
           git checkout -b feature/new-repository-${{ env.NAME }}
-          git add main.tf
-          git commit -m "Modify main.tf"
+          git add repos.tf
+          git commit -m "Modify repos.tf"
           git push origin feature/new-repository-${{ env.NAME }}
 
   create_pr:
