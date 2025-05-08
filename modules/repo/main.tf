@@ -70,7 +70,7 @@ resource "github_repository_ruleset" "this" {
     required_signatures     = try(each.value.rules.required_signatures, null)
     
     dynamic "pull_request" {
-      for_each = lookup(each.value.rules, "pull_request", {}) != {} ? [1] : []
+      for_each = lookup(each.value.rules, "pull_request", {}) != {} ? [lookup(each.value.rules, "pull_request", {})] : []
       content {
         dismiss_stale_reviews_on_push = try(pull_request.value.dismiss_stale_reviews_on_push, null)
         require_code_owner_review     = try(pull_request.value.require_code_owner_review, null)
