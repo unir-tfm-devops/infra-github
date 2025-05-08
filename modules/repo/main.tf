@@ -62,34 +62,32 @@ resource "github_repository_ruleset" "this" {
   }
 
   rules {
-    creation                = try(each.value.rules.creation, null)
-    update                  = try(each.value.rules.update, null)
-    deletion                = try(each.value.rules.deletion, null)
+    creation = try(each.value.rules.creation, null)
+    update   = try(each.value.rules.update, null)
+    deletion = try(each.value.rules.deletion, null)
     non_fast_forward        = try(each.value.rules.non_fast_forward, null)
     required_linear_history = try(each.value.rules.required_linear_history, null)
     required_signatures     = try(each.value.rules.required_signatures, null)
-
+    
     dynamic "pull_request" {
-      for_each = try(each.value.rules.pull_request, {}) != {} ? [1] : []
+      for_each = lookup(each.value.rules, "pull_request", {}) != {} ? [1] : []
       content {
-        dismiss_stale_reviews_on_push     = try(pull_request.value.dismiss_stale_reviews_on_push, null)
-        require_code_owner_review         = try(pull_request.value.require_code_owner_review, null)
-        required_approving_review_count   = try(pull_request.value.required_approving_review_count, null)
-        require_last_push_approval        = try(pull_request.value.require_last_push_approval, null)
+        dismiss_stale_reviews_on_push = try(pull_request.value.dismiss_stale_reviews_on_push, null)
+        require_code_owner_review     = try(pull_request.value.require_code_owner_review, null)
+        required_approving_review_count = try(pull_request.value.required_approving_review_count, null)
+        require_last_push_approval     = try(pull_request.value.require_last_push_approval, null)
         required_review_thread_resolution = try(pull_request.value.required_review_thread_resolution, null)
       }
     }
-
     dynamic "required_status_checks" {
-      for_each = try(each.value.rules.required_status_checks, {}) != {} ? [1] : []
+      for_each = lookup(each.value.rules, "required_status_checks", {}) != {} ? [1] : []
       content {
         strict_required_status_checks_policy = try(each.value.rules.required_status_checks.strict_required_status_checks_policy, null)
-
         dynamic "required_check" {
-          for_each = try(each.value.rules.required_status_checks.required_checks, [])
+          for_each = lookup(each.value.rules.required_status_checks, "required_checks", [])
           content {
-            context         = required_check.value.context
-            integration_id  = try(required_check.value.integration_id, null)
+            context = required_check.value.context
+            integration_id  = required_check.value.integration_id
           }
         }
       }
