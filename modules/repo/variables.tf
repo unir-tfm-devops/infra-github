@@ -142,7 +142,7 @@ variable "template_repository" {
 
 variable "teams" {
   description = "Team permissions for the repository"
-  type = map(any)
+  type        = map(string)
   default = {
     "admins" = "admin"
   }
