@@ -192,5 +192,9 @@ variable "labels" {
       color = "a2eeef"
       description = "New feature or request"
     }
+    "breaking-change" = {
+      color = "D93F0B"
+      description = "Change affects backward compatibility"
+    }
   }
 }
