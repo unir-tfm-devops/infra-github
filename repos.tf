@@ -1,8 +1,8 @@
 # File with repositories for the organization
 
-module "terraform-aks" {
+module "terraform-eks" {
   source      = "./modules/repo"
-  name        = "terraform-aks"
+  name        = "terraform-eks"
   description = "Repository for EKS configuration"
   visibility  = "public"
 }
