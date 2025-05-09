@@ -142,7 +142,7 @@ variable "template_repository" {
 
 variable "teams" {
   description = "Team permissions for the repository"
-  type = map(any)
+  type        = map(any)
   default = {
     "admins" = "admin"
   }
@@ -167,13 +167,13 @@ variable "repository_rulesets" {
         }
       ]
       rules = {
-        deletion               = true
-        non_fast_forward       = true
+        deletion                = true
+        non_fast_forward        = true
         required_linear_history = true
         pull_request = {
-          dismiss_stale_reviews_on_push    = true
-          require_code_owner_review        = false
-          required_approving_review_count  = 1
+          dismiss_stale_reviews_on_push   = true
+          require_code_owner_review       = false
+          required_approving_review_count = 1
         }
       }
     }
@@ -183,17 +183,9 @@ variable "repository_rulesets" {
 variable "labels" {
   description = "Labels to create in the repository"
   type        = map(any)
-  default     = {
-    "bug" = {
-      color = "d73a4a"
-      description = "Something isn't working"
-    }
-    "enhancement" = {
-      color = "a2eeef"
-      description = "New feature or request"
-    }
+  default = {
     "breaking-change" = {
-      color = "D93F0B"
+      color       = "D93F0B"
       description = "Change affects backward compatibility"
     }
   }
