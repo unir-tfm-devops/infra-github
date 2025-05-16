@@ -128,6 +128,12 @@ variable "archive_on_destroy" {
   default     = false
 }
 
+variable "vulnerability_alerts" {
+  type        = bool
+  description = "Enable vulnerability alerts for the repository"
+  default     = true
+}
+
 variable "template_owner" {
   type        = string
   description = "Owner of the template repository"

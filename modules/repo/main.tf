@@ -21,6 +21,7 @@ resource "github_repository" "this" {
   gitignore_template     = var.gitignore_template
   license_template       = var.license_template
   archive_on_destroy     = var.archive_on_destroy
+  vulnerability_alerts   = var.vulnerability_alerts
 
   dynamic "template" {
     for_each = var.template_owner != null && var.template_repository != null ? [1] : []
