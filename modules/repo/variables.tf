@@ -191,6 +191,26 @@ variable "labels" {
     "bug" = {
       color       = "d73a4a"
       description = "Something isn't working"
+    },
+    "documentation" = {
+      color       = "0075ca"
+      description = "Improvements or additions to documentation"
+    },
+    "enhancement" = {
+      color       = "a2eeef"
+      description = "Improvement to an existing feature"
+    },
+    "feature" = {
+      color       = "0E8A16"
+      description = "New feature"
+    },
+    "deprecation" = {
+      color       = "FBCA04"
+      description = "Deprecation of existing functionality"
+    },
+    "dependency" = {
+      color       = "5319E7"
+      description = "Update to dependencies"
     }
   }
 }
