@@ -6,10 +6,3 @@ module "terraform-eks" {
   description = "Repository for EKS configuration"
   visibility  = "public"
 }
-
-module "products-search" {
-  source      = "./modules/repo"
-  name        = "products-search"
-  description = "Products Search Repository"
-  visibility  = "public"
-}
