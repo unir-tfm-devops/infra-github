@@ -187,6 +187,10 @@ variable "labels" {
     "breaking-change" = {
       color       = "D93F0B"
       description = "Change affects backward compatibility"
+    },
+    "bug" = {
+      color       = "d73a4a"
+      description = "Something isn't working"
     }
   }
 }
