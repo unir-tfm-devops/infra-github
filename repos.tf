@@ -13,3 +13,10 @@ module "products-search" {
   description = "Example description"
   visibility  = "public"
 }
+
+module "spring-boot-template" {
+  source      = "./modules/repo"
+  name        = "spring-boot-template"
+  description = "Template for building Rest APIs using Java and Spring Boot"
+  visibility  = "public"
+}
