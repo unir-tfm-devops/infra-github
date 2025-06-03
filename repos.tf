@@ -21,3 +21,10 @@ module "reusable-github-actions" {
   description = "Stores reusable github actions and workflows for this organization"
   visibility  = "public"
 }
+
+module "terraform-ecr" {
+  source      = "./modules/repo"
+  name        = "terraform-ecr"
+  description = "Repository for ECR configuration
+  visibility  = "public"
+}
