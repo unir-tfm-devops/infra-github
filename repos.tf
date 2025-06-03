@@ -25,6 +25,6 @@ module "reusable-github-actions" {
 module "terraform-ecr" {
   source      = "./modules/repo"
   name        = "terraform-ecr"
-  description = "Repository for ECR configuration
+  description = "Repository for ECR configuration"
   visibility  = "public"
 }
