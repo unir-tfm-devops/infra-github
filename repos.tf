@@ -14,3 +14,10 @@ module "spring-boot-template" {
   visibility  = "public"
   is_template = true
 }
+
+module "reusable-github-actions" {
+  source      = "./modules/repo"
+  name        = "reusable-github-actions"
+  description = "Stores reusable github actions and workflows for this organization"
+  visibility  = "public"
+}
