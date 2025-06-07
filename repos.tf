@@ -28,3 +28,10 @@ module "terraform-ecr" {
   description = "Repository for ECR configuration"
   visibility  = "public"
 }
+
+module "terraform-chartmuseum" {
+  source      = "./modules/repo"
+  name        = "terraform-chartmuseum"
+  description = "Repository for Chartmuseum deployment and configuration"
+  visibility  = "public"
+}
