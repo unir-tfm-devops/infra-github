@@ -35,3 +35,10 @@ module "terraform-chartmuseum" {
   description = "Repository for Chartmuseum deployment and configuration"
   visibility  = "public"
 }
+
+module "eks-workloads" {
+  source      = "./modules/repo"
+  name        = "eks-workloads"
+  description = "Repository for EKS workloads. Stores services configurations and ArgoCD applications that runs on EKS"
+  visibility  = "public"
+}
