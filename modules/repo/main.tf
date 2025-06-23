@@ -104,3 +104,19 @@ resource "github_issue_label" "this" {
   description = each.value.description
   color       = each.value.color
 }
+
+resource "github_repository_environment" "this" {
+  for_each    = var.environments
+  environment = each.value.name
+  repository  = github_repository.this.name
+  prevent_self_review = true
+
+  reviewers {
+    teams = each.value.reviewers
+  }
+  
+  deployment_branch_policy {
+    custom_branch_policies = false
+    protected_branches = false
+  }
+}
