@@ -170,6 +170,11 @@ variable "repository_rulesets" {
           actor_type  = "OrganizationAdmin"
           actor_id    = null
           bypass_mode = "always"
+        },
+        {
+          actor_type  = "Integration"
+          actor_id    = 1179350
+          bypass_mode = "always"
         }
       ]
       rules = {
