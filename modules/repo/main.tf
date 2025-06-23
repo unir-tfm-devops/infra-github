@@ -114,9 +114,4 @@ resource "github_repository_environment" "this" {
   reviewers {
     teams = each.value.reviewers
   }
-  
-  deployment_branch_policy {
-    custom_branch_policies = false
-    protected_branches = false
-  }
 }
