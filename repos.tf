@@ -13,6 +13,17 @@ module "spring-boot-template" {
   description = "Template for building Rest APIs using Java and Spring Boot"
   visibility  = "public"
   is_template = true
+  
+  environments = {
+    test = {
+      name = "test"
+      reviewers = []
+    }
+    production = {
+      name = "production"
+      reviewers = [module.admins.id]
+    }
+  }
 }
 
 module "reusable-github-actions" {

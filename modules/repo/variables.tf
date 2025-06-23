@@ -225,3 +225,12 @@ variable "labels" {
     }
   }
 }
+
+variable "environments" {
+  description = "GitHub environments to create for the repository"
+  type = map(object({
+    name = string
+    reviewers = optional(list(string), [])
+  }))
+  default = {}
+}
