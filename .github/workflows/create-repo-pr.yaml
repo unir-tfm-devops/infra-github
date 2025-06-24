@@ -157,10 +157,10 @@ jobs:
       - name: Create Pull Request
         id: create_pr
         env:
-          NAME: ${{ needs.commit_changes.outputs.name }}
-          DESCRIPTION: ${{ needs.commit_changes.outputs.description }}
-          VISIBILITY: ${{ needs.commit_changes.outputs.visibility }}
-          TEMPLATE: ${{ needs.commit_changes.outputs.template }}
+          NAME: ${{ needs.repository_changes.outputs.name }}
+          DESCRIPTION: ${{ needs.repository_changes.outputs.description }}
+          VISIBILITY: ${{ needs.repository_changes.outputs.visibility }}
+          TEMPLATE: ${{ needs.repository_changes.outputs.template }}
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -288,8 +288,7 @@ jobs:
             - [ ] Confirm Terraform syntax correctness
             - [ ] Merge once validated
 
-            Related to #${{ env.ISSUE_NUMBER }}" \
-            -l "ecr")
+            Related to #${{ env.ISSUE_NUMBER }}")
 
           echo "ECR_PR_URL=$PR_URL" >> $GITHUB_ENV
 
