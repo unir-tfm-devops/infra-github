@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - "api-repos.tf"
+      - "spring-boot-repos.tf"
+      - "nodejs-repos.tf"
 
 jobs:
   terraform:
