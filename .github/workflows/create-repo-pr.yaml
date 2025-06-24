@@ -39,8 +39,8 @@ jobs:
           echo "Visibility: ${{ steps.extract_info.outputs.VISIBILITY }}"
           echo "Template: ${{ steps.extract_info.outputs.TEMPLATE }}"
 
-  commit_changes:
-    name: Commit Changes
+  repository_changes:
+    name: GitHub Repository Changes
     needs: [extract_info]
     runs-on: ubuntu-latest
     outputs:
@@ -137,10 +137,12 @@ jobs:
           git commit -m "Modify ${{ steps.get_file.outputs.file }}"
           git push origin feature/new-repository-${{ env.NAME }}
 
-  create_pr:
-    name: Create Pull Request
-    needs: commit_changes
+  repository_pr:
+    name: Create PR for repository
+    needs: repository_changes
     runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ env.PR_URL }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -192,11 +194,131 @@ jobs:
 
           echo "PR_URL=$PR_URL" >> $GITHUB_ENV
 
-      - name: Comment on Issue
+  ecr_changes:
+    name: ECR Changes
+    needs: [extract_info]
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ needs.extract_info.outputs.name }}
+    steps:
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          repository: ${{ github.repository_owner }}/terraform-ecr
+          path: terraform-ecr
+
+      - name: Add new ECR
+        working-directory: terraform-ecr
         env:
+          NAME: ${{ needs.extract_info.outputs.name }}
+        run: |
+          # Add new ECR module to main.tf
+          cat <<EOF >> main.tf
+
+          module "${{ env.NAME }}" {
+            source = "./modules/ecr"
+
+            name = "${{ env.NAME }}"
+          }
+          EOF
+
+      - name: Commit ECR changes
+        working-directory: terraform-ecr
+        env:
+          NAME: ${{ needs.extract_info.outputs.name }}
+        run: |
+          git config --global user.email "unir-tfm-devops[bot]@users.noreply.github.com"
+          git config --global user.name "unir-tfm-devops[bot]"
+          git remote set-url origin https://x-access-token:${{ steps.get_token.outputs.token }}@github.com/${{ github.repository_owner }}/terraform-ecr
+          git checkout -b feature/new-ecr-${{ env.NAME }}
+          git add main.tf
+          git commit -m "Add ECR repository for ${{ env.NAME }}"
+          git push origin feature/new-ecr-${{ env.NAME }}
+
+  ecr_pr:
+    name: Create PR for ECR
+    needs: ecr_changes
+    runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ env.ECR_PR_URL }}
+    steps:
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          repository: ${{ github.repository_owner }}/terraform-ecr
+          path: terraform-ecr
+
+      - name: Create ECR Pull Request
+        working-directory: terraform-ecr
+        env:
+          NAME: ${{ needs.ecr_changes.outputs.name }}
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          PR_URL: ${{ env.PR_URL }}
         run: |
-          gh issue comment ${{ env.ISSUE_NUMBER }} --body "A pull request has been created to address this issue: ${{ env.PR_URL }}. Please review and provide feedback."
+          PR_URL=$(gh pr create \
+            -B main \
+            -H feature/new-ecr-${{ env.NAME }} \
+            -t "Add ECR repository for ${{ env.NAME }}" \
+            -b "### Summary
+            This PR adds a new ECR module for the repository created in [Issue #${{ env.ISSUE_NUMBER }}](${{ env.ISSUE_URL }}).
+
+            **ECR Name:** ${{ env.NAME }}
+
+            ### Checklist
+            - [ ] Verify ECR module configuration
+            - [ ] Confirm Terraform syntax correctness
+            - [ ] Merge once validated
+
+            Related to #${{ env.ISSUE_NUMBER }}" \
+            -l "ecr")
+
+          echo "ECR_PR_URL=$PR_URL" >> $GITHUB_ENV
+
+  comment_on_issue:
+    name: Comment on Issue
+    needs: [repository_pr, ecr_pr]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Comment on Issue
+        env:
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO_PR_URL: ${{ needs.repository_pr.outputs.pr_url }}
+          ECR_PR_URL: ${{ needs.ecr_pr.outputs.pr_url }}
+        run: |
+          gh issue comment ${{ env.ISSUE_NUMBER }} --body "✅ Pull requests have been created to address this issue:
+
+          **Repository PR:** ${{ env.REPO_PR_URL }}
+          **ECR PR:** ${{ env.ECR_PR_URL }}
+
+          Please review both pull requests and provide feedback. Once approved, merge them to create the new repository and ECR repository."
