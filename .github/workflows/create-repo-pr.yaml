@@ -68,12 +68,12 @@ jobs:
           TEMPLATE: ${{ needs.extract_info.outputs.template }}
         run: |
           # Set template variables based on selection
-          if [ "${{ env.TEMPLATE }}" = "spring-boot-template" ]; then
-            TEMPLATE_OWNER="${{ github.repository_owner }}"
-            TEMPLATE_REPO="spring-boot-template"
-          else
+          if [ "${{ env.TEMPLATE }}" = "No template" ]; then
             TEMPLATE_OWNER=""
             TEMPLATE_REPO=""
+          else
+            TEMPLATE_OWNER="${{ github.repository_owner }}"
+            TEMPLATE_REPO="${{ env.TEMPLATE }}"
           fi
 
           cat <<EOF >> repos.tf

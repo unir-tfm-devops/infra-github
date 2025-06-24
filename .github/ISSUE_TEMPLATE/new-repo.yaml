@@ -39,6 +39,7 @@ body:
       description: "Select a template to use for the repository, or choose 'No template' for an empty repository."
       options:
         - spring-boot-template
+        - nodejs-template
         - No template
     validations:
       required: true
