@@ -1,10 +1,9 @@
 # File with REST API repositories
 
-
-module "products-search-api" {
+module "products-search-api-2" {
   source      = "./modules/repo"
-  name        = "products-search-api"
-  description = "products-search-api"
+  name        = "products-search-api-2"
+  description = "products-search-api-2"
   visibility  = "public"
   template_owner = "unir-tfm-devops"
   template_repository = "spring-boot-template"
@@ -20,3 +19,5 @@ module "products-search-api" {
     }
   }
 }
+
+
