@@ -66,4 +66,11 @@ module "sonarqube-projects" {
   name        = "sonarqube-projects"
   description = "Repository for Sonarqube projects configuration"
   visibility  = "public"
+} 
+
+module "snyk-projects" {
+  source      = "./modules/repo"
+  name        = "snyk-projects"
+  description = "Repository for Snyk projects configuration"
+  visibility  = "public"
 }
