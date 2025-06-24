@@ -60,7 +60,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           repositories: "terraform-github"
 
-      - name: Modify repos.tf
+      - name: Modify api-repos.tf
         env:
           NAME: ${{ needs.extract_info.outputs.name }}
           DESCRIPTION: ${{ needs.extract_info.outputs.description }}
@@ -76,7 +76,7 @@ jobs:
             TEMPLATE_REPO="${{ env.TEMPLATE }}"
           fi
 
-          cat <<EOF >> repos.tf
+          cat <<EOF >> api-repos.tf
 
           module "${{ env.NAME }}" {
             source      = "./modules/repo"
@@ -107,8 +107,8 @@ jobs:
           git config --global user.name "unir-tfm-devops[bot]"
           git remote set-url origin https://x-access-token:${{ steps.get_token.outputs.token }}@github.com/${{ github.repository }}
           git checkout -b feature/new-repository-${{ env.NAME }}
-          git add repos.tf
-          git commit -m "Modify repos.tf"
+          git add api-repos.tf
+          git commit -m "Modify api-repos.tf"
           git push origin feature/new-repository-${{ env.NAME }}
 
   create_pr:
