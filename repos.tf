@@ -60,3 +60,10 @@ module "infra-rds" {
   description = "Repository for RDS instaces configuration"
   visibility  = "public"
 }
+
+module "sonarqube-projects" {
+  source      = "./modules/repo"
+  name        = "sonarqube-projects"
+  description = "Repository for Sonarqube projects configuration"
+  visibility  = "public"
+}
