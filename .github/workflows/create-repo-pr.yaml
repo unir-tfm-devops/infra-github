@@ -85,6 +85,17 @@ jobs:
             visibility  = "${{ env.VISIBILITY }}"
             template_owner = "$TEMPLATE_OWNER"
             template_repository = "$TEMPLATE_REPO"
+
+            environments = {
+              test = {
+                name = "test"
+                reviewers = []
+              }
+              production = {
+                name = "production"
+                reviewers = [module.admins.id]
+              }
+            }
           }
           EOF
 
