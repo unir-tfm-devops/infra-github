@@ -64,11 +64,11 @@ jobs:
         id: get_file
         run: |
           if [ "${{ needs.extract_info.outputs.template }}" = "spring-boot-template" ]; then
-            echo "spring-boot-repos.tf"
+            echo "file=spring-boot-repos.tf" >> $GITHUB_OUTPUT
           elif [ "${{ needs.extract_info.outputs.template }}" = "nodejs-template" ]; then
-            echo "nodejs-repos.tf"
+            echo "file=nodejs-repos.tf" >> $GITHUB_OUTPUT
           else
-            echo "repos.tf"
+            echo "file=repos.tf" >> $GITHUB_OUTPUT
           fi
 
       - name: Modify repos file
