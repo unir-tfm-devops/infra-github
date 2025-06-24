@@ -60,3 +60,12 @@ module "infra-rds" {
   description = "Repository for RDS instaces configuration"
   visibility  = "public"
 }
+
+module "products-search-api" {
+  source      = "./modules/repo"
+  name        = "products-search-api"
+  description = "Description for products-search-api repository"
+  visibility  = "public"
+  template_owner = "unir-tfm-devops"
+  template_repository = "spring-boot-template"
+}
