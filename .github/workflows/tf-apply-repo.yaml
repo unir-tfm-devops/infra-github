@@ -70,7 +70,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ steps.get_token.outputs.token }}
-          repository: ${{ steps.get_last_repo.outputs.repo_name }}
+          repository: ${{ github.repository_owner }}/$({{ steps.get_last_repo.outputs.repo_name }})
           path: ${{ steps.get_last_repo.outputs.repo_name }}
 
       - name: Replace template occurrences
