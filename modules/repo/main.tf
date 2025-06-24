@@ -114,4 +114,6 @@ resource "github_repository_environment" "this" {
   reviewers {
     teams = each.value.reviewers
   }
+
+  depends_on = [ github_team_repository.some_team_repo ]
 }
