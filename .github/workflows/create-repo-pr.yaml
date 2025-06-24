@@ -69,49 +69,49 @@ jobs:
         run: |
           # Set template variables based on selection
           if [ "${{ env.TEMPLATE }}" = "No template" ]; then
-            cat <<EOF >> api-repos.tf
+          cat <<EOF >> api-repos.tf
 
-            module "${{ env.NAME }}" {
-              source      = "./modules/repo"
-              name        = "${{ env.NAME }}"
-              description = "${{ env.DESCRIPTION }}"
-              visibility  = "${{ env.VISIBILITY }}"
+          module "${{ env.NAME }}" {
+            source      = "./modules/repo"
+            name        = "${{ env.NAME }}"
+            description = "${{ env.DESCRIPTION }}"
+            visibility  = "${{ env.VISIBILITY }}"
 
-              environments = {
-                test = {
-                  name = "test"
-                  reviewers = []
-                }
-                production = {
-                  name = "production"
-                  reviewers = [module.admins.id]
-                }
+            environments = {
+              test = {
+                name = "test"
+                reviewers = []
+              }
+              production = {
+                name = "production"
+                reviewers = [module.admins.id]
               }
             }
-            EOF
+          }
+          EOF
           else
-            cat <<EOF >> api-repos.tf
+          cat <<EOF >> api-repos.tf
 
-            module "${{ env.NAME }}" {
-              source      = "./modules/repo"
-              name        = "${{ env.NAME }}"
-              description = "${{ env.DESCRIPTION }}"
-              visibility  = "${{ env.VISIBILITY }}"
-              template_owner = "${{ github.repository_owner }}"
-              template_repository = "${{ env.TEMPLATE }}"
+          module "${{ env.NAME }}" {
+            source      = "./modules/repo"
+            name        = "${{ env.NAME }}"
+            description = "${{ env.DESCRIPTION }}"
+            visibility  = "${{ env.VISIBILITY }}"
+            template_owner = "${{ github.repository_owner }}"
+            template_repository = "${{ env.TEMPLATE }}"
 
-              environments = {
-                test = {
-                  name = "test"
-                  reviewers = []
-                }
-                production = {
-                  name = "production"
-                  reviewers = [module.admins.id]
-                }
+            environments = {
+              test = {
+                name = "test"
+                reviewers = []
+              }
+              production = {
+                name = "production"
+                reviewers = [module.admins.id]
               }
             }
-            EOF
+          }
+          EOF
           fi
 
       - name: Commit changes
