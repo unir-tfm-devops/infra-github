@@ -1,0 +1,89 @@
+name: "Create and Initialize Spring Boot Repo"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "spring-boot-repos.tf"
+
+jobs:
+  terraform:
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: "Setup Terraform"
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: "Terraform Init"
+        run: terraform init
+
+      - name: "Terraform Plan"
+        run: terraform plan
+        env:
+          TF_VAR_github_token: ${{ steps.get_token.outputs.token }}
+          TF_VAR_github_organization: ${{ github.repository_owner }}
+
+      - name: "Terraform Apply"
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_github_token: ${{ steps.get_token.outputs.token }}
+          TF_VAR_github_organization: ${{ github.repository_owner }}
+
+  initialize:
+    name: Initialize Repository
+    runs-on: ubuntu-latest
+    needs: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get last repo created
+        id: get_last_repo
+        run: |
+          last_repo=$(grep -oP 'module\s+"\K[^"]+' spring-boot-repos.tf | tail -n1)
+          echo "Last repo: $last_repo"
+          echo "repo_name=$last_repo" >> $GITHUB_OUTPUT
+
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          repository: ${{ github.repository_owner }}/${{ steps.get_last_repo.outputs.repo_name }}
+          path: ${{ steps.get_last_repo.outputs.repo_name }}
+
+      - name: Replace template occurrences
+        working-directory: ${{ steps.get_last_repo.outputs.repo_name }}
+        run: |
+          grep -rl 'spring-boot-template' . | xargs sed -i 's/spring-boot-template/${{ steps.get_last_repo.outputs.repo_name }}/g'
+
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Initialize repository"
+          branch: main
+          repository: ${{ steps.get_last_repo.outputs.repo_name }}
+          commit_user_name: "unir-tfm-devops[bot]"
+          commit_user_email: "unir-tfm-devops[bot]@users.noreply.github.com"
+          commit_author: "unir-tfm-devops[bot] <unir-tfm-devops[bot]@users.noreply.github.com>"

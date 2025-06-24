@@ -1,11 +1,11 @@
-name: "Create and Initialize Repo"
+name: "Create and Initialize Node.js Repo"
 
 on:
   push:
     branches:
       - main
     paths:
-      - "api-repos.tf"
+      - "nodejs-repos.tf"
 
 jobs:
   terraform:
@@ -54,7 +54,7 @@ jobs:
       - name: Get last repo created
         id: get_last_repo
         run: |
-          last_repo=$(grep -oP 'module\s+"\K[^"]+' api-repos.tf | tail -n1)
+          last_repo=$(grep -oP 'module\s+"\K[^"]+' nodejs-repos.tf | tail -n1)
           echo "Last repo: $last_repo"
           echo "repo_name=$last_repo" >> $GITHUB_OUTPUT
 
@@ -76,7 +76,7 @@ jobs:
       - name: Replace template occurrences
         working-directory: ${{ steps.get_last_repo.outputs.repo_name }}
         run: |
-          grep -rl 'spring-boot-template' . | xargs sed -i 's/spring-boot-template/${{ steps.get_last_repo.outputs.repo_name }}/g'
+          grep -rl 'nodejs-template' . | xargs sed -i 's/nodejs-template/${{ steps.get_last_repo.outputs.repo_name }}/g'
 
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v5

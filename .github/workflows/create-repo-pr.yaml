@@ -60,7 +60,18 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           repositories: "terraform-github"
 
-      - name: Modify api-repos.tf
+      - name: Get file to modify
+        id: get_file
+        run: |
+          if [ "${{ needs.extract_info.outputs.template }}" = "spring-boot-template" ]; then
+            echo "spring-boot-repos.tf"
+          elif [ "${{ needs.extract_info.outputs.template }}" = "nodejs-template" ]; then
+            echo "nodejs-repos.tf"
+          else
+            echo "repos.tf"
+          fi
+
+      - name: Modify repos file
         env:
           NAME: ${{ needs.extract_info.outputs.name }}
           DESCRIPTION: ${{ needs.extract_info.outputs.description }}
@@ -69,7 +80,7 @@ jobs:
         run: |
           # Set template variables based on selection
           if [ "${{ env.TEMPLATE }}" = "No template" ]; then
-          cat <<EOF >> api-repos.tf
+          cat <<EOF >> ${{ steps.get_file.outputs.file }}
 
           module "${{ env.NAME }}" {
             source      = "./modules/repo"
@@ -90,7 +101,7 @@ jobs:
           }
           EOF
           else
-          cat <<EOF >> api-repos.tf
+          cat <<EOF >> ${{ steps.get_file.outputs.file }}
 
           module "${{ env.NAME }}" {
             source      = "./modules/repo"
@@ -122,8 +133,8 @@ jobs:
           git config --global user.name "unir-tfm-devops[bot]"
           git remote set-url origin https://x-access-token:${{ steps.get_token.outputs.token }}@github.com/${{ github.repository }}
           git checkout -b feature/new-repository-${{ env.NAME }}
-          git add api-repos.tf
-          git commit -m "Modify api-repos.tf"
+          git add ${{ steps.get_file.outputs.file }}
+          git commit -m "Modify ${{ steps.get_file.outputs.file }}"
           git push origin feature/new-repository-${{ env.NAME }}
 
   create_pr:
