@@ -69,8 +69,8 @@ jobs:
         run: |
           # Set template variables based on selection
           if [ "${{ env.TEMPLATE }}" = "No template" ]; then
-            TEMPLATE_OWNER=""
-            TEMPLATE_REPO=""
+            TEMPLATE_OWNER=null
+            TEMPLATE_REPO=null
           else
             TEMPLATE_OWNER="${{ github.repository_owner }}"
             TEMPLATE_REPO="${{ env.TEMPLATE }}"
