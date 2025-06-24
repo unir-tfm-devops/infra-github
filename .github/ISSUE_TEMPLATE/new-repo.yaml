@@ -1,5 +1,5 @@
-name: "New Repository Request"
-description: "Request the creation of a new GitHub repository."
+name: "New REST API Repository Request"
+description: "Request the creation of a new GitHub repository for a REST API."
 title: "[New Repository] <repository-name>"
 labels: ["new-repo"]
 body:
@@ -29,5 +29,16 @@ body:
       options:
         - public
         - private
+    validations:
+      required: true
+
+  - type: dropdown
+    id: template
+    attributes:
+      label: "Repository Template"
+      description: "Select a template to use for the repository, or choose 'No template' for an empty repository."
+      options:
+        - spring-boot-template
+        - No template
     validations:
       required: true

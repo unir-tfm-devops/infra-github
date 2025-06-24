@@ -8,11 +8,13 @@ def extract_repo_info(file_path):
     repo_name = re.search(r'### Repository Name\n\n(.*?)\n', content, re.DOTALL)
     repo_description = re.search(r'### Repository Description\n\n(.*?)\n', content, re.DOTALL)
     repo_visibility = re.search(r'### Repository Visibility\n\n(.*?)\n', content, re.DOTALL)
+    repo_template = re.search(r'### Repository Template\n\n(.*?)\n', content, re.DOTALL)
     
     extracted_info = {
         "Name": repo_name.group(1).strip() if repo_name else "Not found",
         "Description": repo_description.group(1).strip() if repo_description else "Not found",
         "Visibility": repo_visibility.group(1).strip() if repo_visibility else "Not found",
+        "Template": repo_template.group(1).strip() if repo_template else "Not found",
     }
 
     # Save extracted info to a file

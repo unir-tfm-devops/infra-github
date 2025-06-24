@@ -12,6 +12,7 @@ jobs:
       name: ${{ steps.extract_info.outputs.NAME }}
       description: ${{ steps.extract_info.outputs.DESCRIPTION }}
       visibility: ${{ steps.extract_info.outputs.VISIBILITY }}
+      template: ${{ steps.extract_info.outputs.TEMPLATE }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -29,12 +30,14 @@ jobs:
           echo "NAME=$(grep 'Name:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
           echo "DESCRIPTION=$(grep 'Description:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
           echo "VISIBILITY=$(grep 'Visibility:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
+          echo "TEMPLATE=$(grep 'Template:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
 
       - name: Print Extracted Information
         run: |
           echo "Name: ${{ steps.extract_info.outputs.NAME }}"
           echo "Description: ${{ steps.extract_info.outputs.DESCRIPTION }}"
           echo "Visibility: ${{ steps.extract_info.outputs.VISIBILITY }}"
+          echo "Template: ${{ steps.extract_info.outputs.TEMPLATE }}"
 
   commit_changes:
     name: Commit Changes
@@ -44,6 +47,7 @@ jobs:
       name: ${{ needs.extract_info.outputs.name }}
       description: ${{ needs.extract_info.outputs.description }}
       visibility: ${{ needs.extract_info.outputs.visibility }}
+      template: ${{ needs.extract_info.outputs.template }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -61,7 +65,17 @@ jobs:
           NAME: ${{ needs.extract_info.outputs.name }}
           DESCRIPTION: ${{ needs.extract_info.outputs.description }}
           VISIBILITY: ${{ needs.extract_info.outputs.visibility }}
+          TEMPLATE: ${{ needs.extract_info.outputs.template }}
         run: |
+          # Set template variables based on selection
+          if [ "${{ env.TEMPLATE }}" = "spring-boot-template" ]; then
+            TEMPLATE_OWNER="${{ github.repository_owner }}"
+            TEMPLATE_REPO="spring-boot-template"
+          else
+            TEMPLATE_OWNER=""
+            TEMPLATE_REPO=""
+          fi
+
           cat <<EOF >> repos.tf
 
           module "${{ env.NAME }}" {
@@ -69,6 +83,8 @@ jobs:
             name        = "${{ env.NAME }}"
             description = "${{ env.DESCRIPTION }}"
             visibility  = "${{ env.VISIBILITY }}"
+            template_owner = "$TEMPLATE_OWNER"
+            template_repository = "$TEMPLATE_REPO"
           }
           EOF
 
@@ -105,10 +121,18 @@ jobs:
           NAME: ${{ needs.commit_changes.outputs.name }}
           DESCRIPTION: ${{ needs.commit_changes.outputs.description }}
           VISIBILITY: ${{ needs.commit_changes.outputs.visibility }}
+          TEMPLATE: ${{ needs.commit_changes.outputs.template }}
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
+          # Format template info for PR description
+          if [ "${{ env.TEMPLATE }}" = "No template" ]; then
+            TEMPLATE_INFO="No template (empty repository)"
+          else
+            TEMPLATE_INFO="${{ env.TEMPLATE }}"
+          fi
+
           PR_URL=$(gh pr create \
             -B main \
             -H feature/new-repository-${{ env.NAME }} \
@@ -119,6 +143,7 @@ jobs:
             **Repository Name:** ${{ env.NAME }}
             **Description:** ${{ env.DESCRIPTION }}
             **Visibility:** ${{ env.VISIBILITY }}
+            **Template:** $TEMPLATE_INFO
 
             ### Checklist
             - [ ] Verify repository name and description
