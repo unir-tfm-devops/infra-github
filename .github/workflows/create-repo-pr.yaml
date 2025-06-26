@@ -321,6 +321,7 @@ jobs:
         run: |
           # Add new project to sonarqube-projects.yaml
           cat <<EOF >> sonarqube-projects.yaml
+
             - key: "${{ env.NAME }}"
               visibility: "public"
           EOF
