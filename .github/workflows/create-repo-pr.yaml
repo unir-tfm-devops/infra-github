@@ -388,9 +388,105 @@ jobs:
 
           echo "SONARQUBE_PR_URL=$PR_URL" >> $GITHUB_ENV
 
+  snyk_changes:
+    name: Snyk Changes
+    needs: [extract_info]
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ needs.extract_info.outputs.name }}
+    steps:
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          repository: ${{ github.repository_owner }}/snyk-projects
+          path: snyk-projects
+
+      - name: Add new Snyk project
+        working-directory: snyk-projects
+        env:
+          NAME: ${{ needs.extract_info.outputs.name }}
+        run: |
+          # Add new project to snyk-projects.yml
+          cat <<EOF >> snyk-projects.yml
+
+            - name: "${{ env.NAME }}"
+              branch: main
+          EOF
+
+      - name: Commit Snyk changes
+        working-directory: snyk-projects
+        env:
+          NAME: ${{ needs.extract_info.outputs.name }}
+        run: |
+          git config --global user.email "unir-tfm-devops[bot]@users.noreply.github.com"
+          git config --global user.name "unir-tfm-devops[bot]"
+          git remote set-url origin https://x-access-token:${{ steps.get_token.outputs.token }}@github.com/${{ github.repository_owner }}/snyk-projects
+          git checkout -b feature/new-snyk-${{ env.NAME }}
+          git add snyk-projects.yml
+          git commit -m "Add Snyk project for ${{ env.NAME }}"
+          git push origin feature/new-snyk-${{ env.NAME }}
+
+  snyk_pr:
+    name: Create PR for Snyk
+    needs: snyk_changes
+    runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ env.SNYK_PR_URL }}
+    steps:
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          repository: ${{ github.repository_owner }}/snyk-projects
+          path: snyk-projects
+
+      - name: Create Snyk Pull Request
+        working-directory: snyk-projects
+        env:
+          NAME: ${{ needs.snyk_changes.outputs.name }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          PR_URL=$(gh pr create \
+            -B main \
+            -H feature/new-snyk-${{ env.NAME }} \
+            -t "Add Snyk project for ${{ env.NAME }}" \
+            -b "### Summary
+            This PR adds a new Snyk project for the repository created in [Issue #${{ env.ISSUE_NUMBER }}](${{ env.ISSUE_URL }}).
+
+            **Project Name:** ${{ env.NAME }}
+            **Branch:** main
+
+            ### Checklist
+            - [ ] Verify Snyk project configuration
+            - [ ] Confirm YAML syntax correctness
+            - [ ] Merge once validated
+
+            Related to #${{ env.ISSUE_NUMBER }}")
+
+          echo "SNYK_PR_URL=$PR_URL" >> $GITHUB_ENV
+
   comment_on_issue:
     name: Comment on Issue
-    needs: [repository_pr, ecr_pr, sonarqube_pr]
+    needs: [repository_pr, ecr_pr, sonarqube_pr, snyk_pr]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -411,11 +507,37 @@ jobs:
           REPO_PR_URL: ${{ needs.repository_pr.outputs.pr_url }}
           ECR_PR_URL: ${{ needs.ecr_pr.outputs.pr_url }}
           SONARQUBE_PR_URL: ${{ needs.sonarqube_pr.outputs.pr_url }}
+          SNYK_PR_URL: ${{ needs.snyk_pr.outputs.pr_url }}
         run: |
           gh issue comment ${{ env.ISSUE_NUMBER }} --body "✅ Pull requests have been created to address this issue:
 
-          **Repository PR:** ${{ env.REPO_PR_URL }}
-          **ECR PR:** ${{ env.ECR_PR_URL }}
-          **SonarQube PR:** ${{ env.SONARQUBE_PR_URL }}
+          ## Merge Order (Important!)
+          Please merge the PRs in the following order and **wait for workflows to complete** before merging the next one:
 
-          Please review all pull requests and provide feedback. Once approved, merge them to create the new repository, ECR repository, and SonarQube project."
+          ### 1. ECR Repository PR
+          **PR:** ${{ env.ECR_PR_URL }}
+          - Merge this first to create the ECR repository
+          - Wait for ECR workflows to complete
+
+          ### 2. SonarQube Project PR
+          **PR:** ${{ env.SONARQUBE_PR_URL }}
+          - Merge after ECR workflows are complete
+          - Wait for SonarQube workflows to complete
+
+          ### 3. Repository PR
+          **PR:** ${{ env.REPO_PR_URL }}
+          - Merge after SonarQube workflows are complete
+          - Wait for repository creation workflows to complete
+
+          ### 4. Snyk Project PR
+          **PR:** ${{ env.SNYK_PR_URL }}
+          - Merge last, after repository workflows are complete
+          - This ensures the repository exists before adding Snyk monitoring
+
+          ## Summary
+          - **ECR PR:** ${{ env.ECR_PR_URL }}
+          - **SonarQube PR:** ${{ env.SONARQUBE_PR_URL }}
+          - **Repository PR:** ${{ env.REPO_PR_URL }}
+          - **Snyk PR:** ${{ env.SNYK_PR_URL }}
+
+          Please review all pull requests and merge them in the specified order. Each PR should be merged only after the previous one's workflows have completed successfully."
