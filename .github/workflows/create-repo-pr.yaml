@@ -292,9 +292,104 @@ jobs:
 
           echo "ECR_PR_URL=$PR_URL" >> $GITHUB_ENV
 
+  sonarqube_changes:
+    name: SonarQube Changes
+    needs: [extract_info]
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ needs.extract_info.outputs.name }}
+    steps:
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          repository: ${{ github.repository_owner }}/sonarqube-projects
+          path: sonarqube-projects
+
+      - name: Add new SonarQube project
+        working-directory: sonarqube-projects
+        env:
+          NAME: ${{ needs.extract_info.outputs.name }}
+        run: |
+          # Add new project to sonarqube-projects.yaml
+          cat <<EOF >> sonarqube-projects.yaml
+            - key: "${{ env.NAME }}"
+              visibility: "public"
+          EOF
+
+      - name: Commit SonarQube changes
+        working-directory: sonarqube-projects
+        env:
+          NAME: ${{ needs.extract_info.outputs.name }}
+        run: |
+          git config --global user.email "unir-tfm-devops[bot]@users.noreply.github.com"
+          git config --global user.name "unir-tfm-devops[bot]"
+          git remote set-url origin https://x-access-token:${{ steps.get_token.outputs.token }}@github.com/${{ github.repository_owner }}/sonarqube-projects
+          git checkout -b feature/new-sonarqube-${{ env.NAME }}
+          git add sonarqube-projects.yaml
+          git commit -m "Add SonarQube project for ${{ env.NAME }}"
+          git push origin feature/new-sonarqube-${{ env.NAME }}
+
+  sonarqube_pr:
+    name: Create PR for SonarQube
+    needs: sonarqube_changes
+    runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ env.SONARQUBE_PR_URL }}
+    steps:
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          repository: ${{ github.repository_owner }}/sonarqube-projects
+          path: sonarqube-projects
+
+      - name: Create SonarQube Pull Request
+        working-directory: sonarqube-projects
+        env:
+          NAME: ${{ needs.sonarqube_changes.outputs.name }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          PR_URL=$(gh pr create \
+            -B main \
+            -H feature/new-sonarqube-${{ env.NAME }} \
+            -t "Add SonarQube project for ${{ env.NAME }}" \
+            -b "### Summary
+            This PR adds a new SonarQube project for the repository created in [Issue #${{ env.ISSUE_NUMBER }}](${{ env.ISSUE_URL }}).
+
+            **Project Key:** ${{ env.NAME }}
+            **Visibility:** public
+
+            ### Checklist
+            - [ ] Verify SonarQube project configuration
+            - [ ] Confirm YAML syntax correctness
+            - [ ] Merge once validated
+
+            Related to #${{ env.ISSUE_NUMBER }}")
+
+          echo "SONARQUBE_PR_URL=$PR_URL" >> $GITHUB_ENV
+
   comment_on_issue:
     name: Comment on Issue
-    needs: [repository_pr, ecr_pr]
+    needs: [repository_pr, ecr_pr, sonarqube_pr]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -314,10 +409,12 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO_PR_URL: ${{ needs.repository_pr.outputs.pr_url }}
           ECR_PR_URL: ${{ needs.ecr_pr.outputs.pr_url }}
+          SONARQUBE_PR_URL: ${{ needs.sonarqube_pr.outputs.pr_url }}
         run: |
           gh issue comment ${{ env.ISSUE_NUMBER }} --body "✅ Pull requests have been created to address this issue:
 
           **Repository PR:** ${{ env.REPO_PR_URL }}
           **ECR PR:** ${{ env.ECR_PR_URL }}
+          **SonarQube PR:** ${{ env.SONARQUBE_PR_URL }}
 
-          Please review both pull requests and provide feedback. Once approved, merge them to create the new repository and ECR repository."
+          Please review all pull requests and provide feedback. Once approved, merge them to create the new repository, ECR repository, and SonarQube project."
