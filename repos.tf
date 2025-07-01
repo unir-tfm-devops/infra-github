@@ -109,3 +109,10 @@ module "snyk-projects" {
   description = "Repository for Snyk projects configuration"
   visibility  = "public"
 }
+
+module "infra-aks" {
+  source      = "./modules/repo"
+  name        = "infra-aks"
+  description = "Repository for AKS cluster configuration"
+  visibility  = "public"
+}
