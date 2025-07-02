@@ -123,3 +123,10 @@ module "infra-acr" {
   description = "Repository for ACR repositories configuration"
   visibility  = "public"
 }
+
+module "infra-azure-dbs" {
+  source      = "./modules/repo"
+  name        = "infra-azure-dbs"
+  description = "Repository for Azure Postgresql DBs configuration"
+  visibility  = "public"
+}
