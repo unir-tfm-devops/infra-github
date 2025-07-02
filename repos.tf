@@ -116,3 +116,10 @@ module "infra-aks" {
   description = "Repository for AKS cluster configuration"
   visibility  = "public"
 }
+
+module "infra-acr" {
+  source      = "./modules/repo"
+  name        = "infra-acr"
+  description = "Repository for ACR repositories configuration"
+  visibility  = "public"
+}
