@@ -58,6 +58,11 @@ jobs:
           echo "Last repo: $last_repo"
           echo "repo_name=$last_repo" >> $GITHUB_OUTPUT
 
+          # Create pretty name by removing hyphens and capitalizing each word
+          pretty_name=$(echo "$last_repo" | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
+          echo "Pretty name: $pretty_name"
+          echo "pretty_name=$pretty_name" >> $GITHUB_OUTPUT
+
       - name: Get Token From GitHub APP
         id: get_token
         uses: actions/create-github-app-token@v1
@@ -77,6 +82,9 @@ jobs:
         working-directory: ${{ steps.get_last_repo.outputs.repo_name }}
         run: |
           grep -rl 'spring-boot-template' . | xargs sed -i 's/spring-boot-template/${{ steps.get_last_repo.outputs.repo_name }}/g'
+
+          # Replace Spring Boot Template with the new repository name, with pretty name
+          grep -rl 'Spring Boot Template' . | xargs sed -i 's/Spring Boot Template/${{ steps.get_last_repo.outputs.pretty_name }}/g'
 
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v5
