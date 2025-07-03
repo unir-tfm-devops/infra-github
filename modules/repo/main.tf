@@ -109,7 +109,7 @@ resource "github_repository_environment" "this" {
   for_each    = var.environments
   environment = each.value.name
   repository  = github_repository.this.name
-  prevent_self_review = true
+  prevent_self_review = false
 
   reviewers {
     teams = each.value.reviewers
