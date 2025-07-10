@@ -130,3 +130,45 @@ module "infra-azure-dbs" {
   description = "Repository for Azure Postgresql DBs configuration"
   visibility  = "public"
 }
+
+module "aks-workloads" {
+  source      = "./modules/repo"
+  name        = "aks-workloads"
+  description = "Repository for AKS workloads. Stores services configurations and ArgoCD applications that runs on AKS"
+  visibility  = "public"
+  
+  labels = {
+    "breaking-change" = {
+      color       = "D93F0B"
+      description = "Change affects backward compatibility"
+    },
+    "bug" = {
+      color       = "d73a4a"
+      description = "Something isn't working"
+    },
+    "documentation" = {
+      color       = "0075ca"
+      description = "Improvements or additions to documentation"
+    },
+    "enhancement" = {
+      color       = "a2eeef"
+      description = "Improvement to an existing feature"
+    },
+    "feature" = {
+      color       = "0E8A16"
+      description = "New feature"
+    },
+    "deprecation" = {
+      color       = "FBCA04"
+      description = "Deprecation of existing functionality"
+    },
+    "dependency" = {
+      color       = "5319E7"
+      description = "Update to dependencies"
+    },
+    "new-app" = {
+      color       = "87CEEB"
+      description = "New ArgoCD application"
+    }
+  }
+}

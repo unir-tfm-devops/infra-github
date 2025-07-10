@@ -43,3 +43,14 @@ body:
         - No template
     validations:
       required: true
+
+  - type: dropdown
+    id: cloud-provider
+    attributes:
+      label: "Cloud Provider"
+      description: "Select the cloud provider for the repository."
+      options:
+        - aws
+        - azure
+    validations:
+      required: true
