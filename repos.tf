@@ -172,3 +172,23 @@ module "aks-workloads" {
     }
   }
 }
+
+module "nodejs-template" {
+  source      = "./modules/repo"
+  name        = "nodejs-template"
+  description = "Template for building Rest APIs using Node.js and Express"
+  visibility  = "public"
+  is_template = true
+  
+  environments = {
+    test = {
+      name = "test"
+      reviewers = []
+    }
+    production = {
+      name = "production"
+      reviewers = [module.admins.id]
+    }
+  }
+}
+
