@@ -192,3 +192,10 @@ module "nodejs-template" {
   }
 }
 
+module "actions-playground" {
+  source      = "./modules/repo"
+  name        = "actions-playground"
+  description = "actions-playground"
+  visibility  = "public"
+}
+
