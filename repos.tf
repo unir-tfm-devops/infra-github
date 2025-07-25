@@ -192,10 +192,10 @@ module "nodejs-template" {
   }
 }
 
-module "actions-playground" {
+module "platform-assistant-api" {
   source      = "./modules/repo"
-  name        = "actions-playground"
-  description = "actions-playground"
+  name        = "platform-assistant-api"
+  description = "Assistant to interact with the Platform - REST API"
   visibility  = "public"
 }
 
