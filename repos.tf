@@ -199,3 +199,10 @@ module "platform-assistant-api" {
   visibility  = "public"
 }
 
+module "platform-assistant-app" {
+  source      = "./modules/repo"
+  name        = "platform-assistant-app"
+  description = "Assistant to interact with the Platform - Web App"
+  visibility  = "public"
+}
+
