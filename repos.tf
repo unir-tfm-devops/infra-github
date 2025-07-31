@@ -42,7 +42,7 @@ module "terraform-ecr" {
 
 module "terraform-chartmuseum" {
   source      = "./modules/repo"
-  name        = "terraform-chartmuseum"
+  name        = "infra-chartmuseum"
   description = "Repository for Chartmuseum deployment and configuration"
   visibility  = "public"
 }
