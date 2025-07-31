@@ -16,7 +16,7 @@ This Terraform project manages:
 ## 📁 Project Structure
 
 ```
-terraform-github/
+infra-github/
 ├── main.tf                 # Main Terraform configuration
 ├── repos.tf                # General repositories configuration
 ├── spring-boot-repos.tf    # Spring Boot specific repositories
