@@ -2,7 +2,7 @@
 
 module "terraform-eks" {
   source      = "./modules/repo"
-  name        = "terraform-eks"
+  name        = "infra-eks"
   description = "Repository for EKS configuration"
   visibility  = "public"
 }
