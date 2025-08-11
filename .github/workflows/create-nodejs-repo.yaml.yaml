@@ -75,6 +75,11 @@ jobs:
           echo "Last repo: $last_repo"
           echo "repo_name=$last_repo" >> $GITHUB_OUTPUT
 
+          # Create pretty name by removing hyphens and capitalizing each word
+          pretty_name=$(echo "$last_repo" | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
+          echo "Pretty name: $pretty_name"
+          echo "pretty_name=$pretty_name" >> $GITHUB_OUTPUT
+
       - name: Get Token From GitHub APP
         id: get_token
         uses: actions/create-github-app-token@v1
@@ -94,6 +99,9 @@ jobs:
         working-directory: ${{ steps.get_last_repo.outputs.repo_name }}
         run: |
           grep -rl 'nodejs-template' . | xargs sed -i 's/nodejs-template/${{ steps.get_last_repo.outputs.repo_name }}/g'
+
+          # Replace Node.js Template with the new repository name, with pretty name
+          grep -rl 'Node.js Template' . | xargs sed -i 's/Node.js Template/${{ steps.get_last_repo.outputs.pretty_name }}/g'
 
           # Replace cloud provider in CI/CD non-release and release workflows
           yq eval '.jobs.ci-cd.with.cloud-provider = "${{ steps.cloud_provider.outputs.cloud }}"' -i .github/workflows/ci-cd-non-release.yml
