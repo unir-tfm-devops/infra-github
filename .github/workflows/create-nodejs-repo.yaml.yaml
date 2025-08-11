@@ -103,6 +103,7 @@ jobs:
 
           # Replace Node.js Template with the new repository name, with pretty name
           grep -rl 'Node.js Template' . | xargs sed -i 's/Node.js Template/${{ steps.get_last_repo.outputs.pretty_name }}/g'
+          grep -rl 'Nodejs Template' . | xargs sed -i 's/Nodejs Template/${{ steps.get_last_repo.outputs.pretty_name }}/g'
 
           # Replace cloud provider in CI/CD non-release and release workflows
           yq eval '.jobs.ci-cd.with.cloud-provider = "${{ steps.cloud_provider.outputs.cloud }}"' -i .github/workflows/ci-cd-non-release.yml
