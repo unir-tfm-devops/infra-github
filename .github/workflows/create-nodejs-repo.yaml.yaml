@@ -51,10 +51,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get changes
+        id: changed_files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: "*.tf"
+
+      - name: Get cloud provider
+        id: cloud_provider
+        env:
+          CHANGED_FILES: ${{ steps.changed_files.outputs.all_changed_and_modified_files }}
+        run: |
+          if [[ "${{ env.CHANGED_FILES }}" == *"nodejs-repos-aws.tf"* ]]; then
+            echo "cloud=aws" >> $GITHUB_OUTPUT
+          else
+            echo "cloud=azure" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get last repo created
         id: get_last_repo
         run: |
-          last_repo=$(grep -oP 'module\s+"\K[^"]+' nodejs-repos.tf | tail -n1)
+          last_repo=$(grep -oP 'module\s+"\K[^"]+' nodejs-repos-${{ steps.cloud_provider.outputs.cloud }}.tf | tail -n1)
           echo "Last repo: $last_repo"
           echo "repo_name=$last_repo" >> $GITHUB_OUTPUT
 
@@ -77,6 +94,10 @@ jobs:
         working-directory: ${{ steps.get_last_repo.outputs.repo_name }}
         run: |
           grep -rl 'nodejs-template' . | xargs sed -i 's/nodejs-template/${{ steps.get_last_repo.outputs.repo_name }}/g'
+
+          # Replace cloud provider in CI/CD non-release and release workflows
+          yq eval '.jobs.ci-cd.with.cloud-provider = "${{ steps.cloud_provider.outputs.cloud }}"' -i .github/workflows/ci-cd-non-release.yml
+          yq eval '.jobs.ci-cd.with.cloud-provider = "${{ steps.cloud_provider.outputs.cloud }}"' -i .github/workflows/ci-cd-release.yml
 
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v5

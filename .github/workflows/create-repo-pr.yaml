@@ -13,6 +13,7 @@ jobs:
       description: ${{ steps.extract_info.outputs.DESCRIPTION }}
       visibility: ${{ steps.extract_info.outputs.VISIBILITY }}
       template: ${{ steps.extract_info.outputs.TEMPLATE }}
+      cloud: ${{ steps.extract_info.outputs.CLOUD }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,6 +32,7 @@ jobs:
           echo "DESCRIPTION=$(grep 'Description:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
           echo "VISIBILITY=$(grep 'Visibility:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
           echo "TEMPLATE=$(grep 'Template:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
+          echo "CLOUD=$(grep 'Cloud:' extracted_info.txt | cut -d':' -f2- | xargs)" >> $GITHUB_OUTPUT
 
       - name: Print Extracted Information
         run: |
@@ -38,6 +40,7 @@ jobs:
           echo "Description: ${{ steps.extract_info.outputs.DESCRIPTION }}"
           echo "Visibility: ${{ steps.extract_info.outputs.VISIBILITY }}"
           echo "Template: ${{ steps.extract_info.outputs.TEMPLATE }}"
+          echo "Cloud: ${{ steps.extract_info.outputs.CLOUD }}"
 
   repository_changes:
     name: GitHub Repository Changes
@@ -48,6 +51,7 @@ jobs:
       description: ${{ needs.extract_info.outputs.description }}
       visibility: ${{ needs.extract_info.outputs.visibility }}
       template: ${{ needs.extract_info.outputs.template }}
+      cloud: ${{ needs.extract_info.outputs.cloud }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -64,9 +68,17 @@ jobs:
         id: get_file
         run: |
           if [ "${{ needs.extract_info.outputs.template }}" = "spring-boot-template" ]; then
-            echo "file=spring-boot-repos.tf" >> $GITHUB_OUTPUT
+            if [ "${{ needs.extract_info.outputs.cloud }}" = "aws" ]; then
+              echo "file=spring-boot-repos-aws.tf" >> $GITHUB_OUTPUT
+            else
+              echo "file=spring-boot-repos-azure.tf" >> $GITHUB_OUTPUT
+            fi
           elif [ "${{ needs.extract_info.outputs.template }}" = "nodejs-template" ]; then
-            echo "file=nodejs-repos.tf" >> $GITHUB_OUTPUT
+            if [ "${{ needs.extract_info.outputs.cloud }}" = "aws" ]; then
+              echo "file=nodejs-repos-aws.tf" >> $GITHUB_OUTPUT
+            else
+              echo "file=nodejs-repos-azure.tf" >> $GITHUB_OUTPUT
+            fi
           else
             echo "file=repos.tf" >> $GITHUB_OUTPUT
           fi
@@ -143,6 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       pr_url: ${{ env.PR_URL }}
+      cloud: ${{ needs.repository_changes.outputs.cloud }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -198,8 +211,10 @@ jobs:
     name: ECR Changes
     needs: [extract_info]
     runs-on: ubuntu-latest
+    if: needs.extract_info.outputs.cloud == 'aws'
     outputs:
       name: ${{ needs.extract_info.outputs.name }}
+      cloud: ${{ needs.extract_info.outputs.cloud }}
     steps:
       - name: Get Token From GitHub APP
         id: get_token
@@ -248,8 +263,10 @@ jobs:
     name: Create PR for ECR
     needs: ecr_changes
     runs-on: ubuntu-latest
+    if: needs.ecr_changes.outputs.cloud == 'aws'
     outputs:
       pr_url: ${{ env.ECR_PR_URL }}
+      cloud: ${{ needs.ecr_changes.outputs.cloud }}
     steps:
       - name: Get Token From GitHub APP
         id: get_token
@@ -484,10 +501,11 @@ jobs:
 
           echo "SNYK_PR_URL=$PR_URL" >> $GITHUB_ENV
 
-  comment_on_issue:
-    name: Comment on Issue
+  comment_on_issue_aws:
+    name: Comment on Issue AWS
     needs: [repository_pr, ecr_pr, sonarqube_pr, snyk_pr]
     runs-on: ubuntu-latest
+    if: needs.ecr_pr.outputs.cloud == 'aws'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -536,6 +554,58 @@ jobs:
 
           ## Summary
           - **ECR PR:** ${{ env.ECR_PR_URL }}
+          - **SonarQube PR:** ${{ env.SONARQUBE_PR_URL }}
+          - **Repository PR:** ${{ env.REPO_PR_URL }}
+          - **Snyk PR:** ${{ env.SNYK_PR_URL }}
+
+          Please review all pull requests and merge them in the specified order. Each PR should be merged only after the previous one's workflows have completed successfully."
+
+  comment_on_issue_azure:
+    name: Comment on Issue Azure
+    needs: [repository_pr, sonarqube_pr, snyk_pr]
+    runs-on: ubuntu-latest
+    if: needs.repository_pr.outputs.cloud == 'azure'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Token From GitHub APP
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Comment on Issue
+        env:
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO_PR_URL: ${{ needs.repository_pr.outputs.pr_url }}
+          SONARQUBE_PR_URL: ${{ needs.sonarqube_pr.outputs.pr_url }}
+          SNYK_PR_URL: ${{ needs.snyk_pr.outputs.pr_url }}
+        run: |
+          gh issue comment ${{ env.ISSUE_NUMBER }} --body "✅ Pull requests have been created to address this issue:
+
+          ## Merge Order (Important!)
+          Please merge the PRs in the following order and **wait for workflows to complete** before merging the next one:
+
+          ### 1. SonarQube Project PR
+          **PR:** ${{ env.SONARQUBE_PR_URL }}
+          - Merge this first to create the SonarQube project
+          - Wait for SonarQube workflows to complete
+
+          ### 2. Repository PR
+          **PR:** ${{ env.REPO_PR_URL }}
+          - Merge after SonarQube workflows are complete
+          - Wait for repository creation workflows to complete
+
+          ### 3. Snyk Project PR
+          **PR:** ${{ env.SNYK_PR_URL }}
+          - Merge last, after repository workflows are complete
+          - This ensures the repository exists before adding Snyk monitoring
+
+          ## Summary
           - **SonarQube PR:** ${{ env.SONARQUBE_PR_URL }}
           - **Repository PR:** ${{ env.REPO_PR_URL }}
           - **Snyk PR:** ${{ env.SNYK_PR_URL }}

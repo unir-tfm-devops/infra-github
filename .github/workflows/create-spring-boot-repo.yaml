@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths:
-      - "spring-boot-repos.tf"
+      - "spring-boot-repos-aws.tf"
+      - "spring-boot-repos-azure.tf"
 
 jobs:
   terraform:
@@ -51,10 +52,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get changes
+        id: changed_files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: "*.tf"
+
+      - name: Get cloud provider
+        id: cloud_provider
+        env:
+          CHANGED_FILES: ${{ steps.changed_files.outputs.all_changed_and_modified_files }}
+        run: |
+          if [[ "${{ env.CHANGED_FILES }}" == *"spring-boot-repos-aws.tf"* ]]; then
+            echo "cloud=aws" >> $GITHUB_OUTPUT
+          else
+            echo "cloud=azure" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get last repo created
         id: get_last_repo
         run: |
-          last_repo=$(grep -oP 'module\s+"\K[^"]+' spring-boot-repos.tf | tail -n1)
+          last_repo=$(grep -oP 'module\s+"\K[^"]+' spring-boot-repos-${{ steps.cloud_provider.outputs.cloud }}.tf | tail -n1)
           echo "Last repo: $last_repo"
           echo "repo_name=$last_repo" >> $GITHUB_OUTPUT
 
@@ -85,6 +103,12 @@ jobs:
 
           # Replace Spring Boot Template with the new repository name, with pretty name
           grep -rl 'Spring Boot Template' . | xargs sed -i 's/Spring Boot Template/${{ steps.get_last_repo.outputs.pretty_name }}/g'
+
+          # Update non-release workflow
+          yq eval '.jobs.ci-cd.with.cloud-provider = "${{ steps.cloud_provider.outputs.cloud }}"' -i .github/workflows/ci-cd-non-release.yml
+
+          # Update release workflow
+          yq eval '.jobs.ci-cd.with.cloud-provider = "${{ steps.cloud_provider.outputs.cloud }}"' -i .github/workflows/ci-cd-release.yml
 
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v5
